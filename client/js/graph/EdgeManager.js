@@ -16,6 +16,7 @@ class EdgeManager {
      * @param {Array} edgesData - Array of edge data objects
      */
     initEdges(edgesData) {
+        console.log(`Initializing ${edgesData.length} edges`);
         edgesData.forEach(edge => this.createEdge(edge));
     }
     
@@ -30,11 +31,13 @@ class EdgeManager {
         const target = nodePositions[edgeData.target];
         
         // Skip if source or target doesn't exist
-        if (!source || !target) return;
+        if (!source || !target) {
+            console.warn(`Cannot create edge: missing nodes for ${edgeData.source} -> ${edgeData.target}`);
+            return;
+        }
         
         // Create edge material based on edge type
-        const materialProps = window.themeManager.createEdgeMaterial(edgeData.type);
-        const material = new THREE.LineBasicMaterial(materialProps);
+        const material = window.themeManager.getEdgeMaterial(edgeData.type);
         
         // Create line geometry
         const points = [source.clone(), target.clone()];
@@ -88,23 +91,33 @@ class EdgeManager {
      * @param {string} state - State ('default', 'selected')
      */
     updateEdgeState(edge, state) {
-        const materialProps = window.themeManager.createEdgeMaterial(
-            edge.userData.type, 
-            state
-        );
-        
-        Object.assign(edge.material, materialProps);
+        try {
+            // FIXED: Replace the entire material instead of updating properties
+            const oldMaterial = edge.material;
+            const newMaterial = window.themeManager.getEdgeMaterial(
+                edge.userData.type, 
+                state
+            );
+            
+            edge.material = newMaterial;
+            
+            // Dispose of old material to prevent memory leaks
+            if (oldMaterial) {
+                oldMaterial.dispose();
+            }
+        } catch (error) {
+            console.error('Error updating edge state:', error);
+        }
     }
     
     /**
-     * Reset all edges to default state with enhanced debugging
+     * Reset all edges to default state
      */
     resetEdgeStates() {
         console.log(`Resetting states for ${this.edgeObjects.length} edges`);
         this.edgeObjects.forEach((edge, index) => {
             try {
-                console.log(`Resetting edge ${index} - Current visibility: ${edge.visible}`);
-                edge.material.opacity = 1.0; // Reset opacity to default
+                this.updateEdgeState(edge, 'default');
                 edge.visible = true; // Ensure edge is visible
             } catch (error) {
                 console.error(`Error resetting edge state for edge ${index}:`, error);

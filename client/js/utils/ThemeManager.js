@@ -26,24 +26,31 @@ class ThemeManager {
         // Default color for unknown edge types
         this.defaultEdgeColor = 0xBDBDBD; // Light gray
         
-        // Node material properties
+        // Node material properties - FIXED: Added complete set of properties
         this.nodeMaterialProps = {
             emissiveIntensity: 0.4,
             shininess: 60,
             opacity: 0.85,
-            transparent: true
+            transparent: true,
+            depthWrite: true,
+            side: THREE.FrontSide,
+            flatShading: false
         };
         
         // Selected node material properties
         this.selectedNodeMaterialProps = {
             emissiveIntensity: 0.8,
-            opacity: 1.0
+            opacity: 1.0,
+            transparent: true,
+            shininess: 70
         };
         
         // Related node material properties
         this.relatedNodeMaterialProps = {
             emissiveIntensity: 0.6,
-            opacity: 0.95
+            opacity: 0.95,
+            transparent: true,
+            shininess: 65
         };
         
         // Edge material properties
@@ -55,7 +62,9 @@ class ThemeManager {
         
         // Selected edge material properties
         this.selectedEdgeMaterialProps = {
-            opacity: 1.0
+            opacity: 1.0,
+            transparent: true,
+            linewidth: 2.5
         };
 
         // Material caches
@@ -75,7 +84,7 @@ class ThemeManager {
             const materialProps = this.createNodeMaterial(type, state);
             this.nodeMaterials[key] = new THREE.MeshPhongMaterial(materialProps);
         }
-        return this.nodeMaterials[key];
+        return this.nodeMaterials[key].clone(); // Return a clone to avoid shared state
     }
 
     /**
@@ -90,7 +99,7 @@ class ThemeManager {
             const materialProps = this.createEdgeMaterial(type, state);
             this.edgeMaterials[key] = new THREE.LineBasicMaterial(materialProps);
         }
-        return this.edgeMaterials[key];
+        return this.edgeMaterials[key].clone(); // Return a clone to avoid shared state
     }
 
     /**
@@ -131,14 +140,25 @@ class ThemeManager {
      * @returns {Object} - Material properties
      */
     getNodeMaterialProps(state = 'default') {
+        // Start with base properties
+        const baseProps = JSON.parse(JSON.stringify(this.nodeMaterialProps));
+        
+        // Merge with state-specific properties
+        let stateProps = {};
         switch (state) {
             case 'selected':
-                return this.selectedNodeMaterialProps;
+                stateProps = this.selectedNodeMaterialProps;
+                break;
             case 'related':
-                return this.relatedNodeMaterialProps;
+                stateProps = this.relatedNodeMaterialProps;
+                break;
             default:
-                return this.nodeMaterialProps;
+                // Use base properties
+                break;
         }
+        
+        // Merge properties, ensuring all required properties exist
+        return { ...baseProps, ...stateProps };
     }
     
     /**
@@ -147,29 +167,38 @@ class ThemeManager {
      * @returns {Object} - Material properties
      */
     getEdgeMaterialProps(state = 'default') {
-        return state === 'selected' 
-            ? this.selectedEdgeMaterialProps 
-            : this.edgeMaterialProps;
+        // Start with base properties
+        const baseProps = JSON.parse(JSON.stringify(this.edgeMaterialProps));
+        
+        // Merge with state-specific properties
+        if (state === 'selected') {
+            return { ...baseProps, ...this.selectedEdgeMaterialProps };
+        }
+        
+        return baseProps;
     }
     
     /**
      * Create a node material with the appropriate color and properties
      * @param {string} type - The node type
      * @param {string} state - The node state
-     * @returns {Object} - THREE.js material
+     * @returns {Object} - THREE.js material properties
      */
     createNodeMaterial(type, state = 'default') {
         const color = this.getNodeColor(type);
         const props = this.getNodeMaterialProps(state);
         
-        // Return configuration object to be used with THREE.MeshPhongMaterial
+        // Return complete configuration object
         return {
             color: color,
             emissive: color,
             emissiveIntensity: props.emissiveIntensity,
             shininess: props.shininess,
             transparent: props.transparent,
-            opacity: props.opacity
+            opacity: props.opacity,
+            depthWrite: props.depthWrite,
+            side: props.side,
+            flatShading: props.flatShading
         };
     }
     
@@ -177,19 +206,38 @@ class ThemeManager {
      * Create an edge material with the appropriate color and properties
      * @param {string} type - The edge type
      * @param {string} state - The edge state
-     * @returns {Object} - THREE.js material
+     * @returns {Object} - THREE.js material properties
      */
     createEdgeMaterial(type, state = 'default') {
         const color = this.getEdgeColor(type);
         const props = this.getEdgeMaterialProps(state);
         
-        // Return configuration object to be used with THREE.LineBasicMaterial
+        // Return complete configuration object
         return {
             color: color,
             transparent: props.transparent,
             opacity: props.opacity,
             linewidth: props.linewidth
         };
+    }
+    
+    /**
+     * Update an existing material with new properties
+     * @param {THREE.Material} material - The material to update
+     * @param {Object} props - New properties to apply
+     */
+    updateMaterial(material, props) {
+        if (!material) return;
+        
+        // Apply each property carefully
+        for (const prop in props) {
+            if (props.hasOwnProperty(prop) && material.hasOwnProperty(prop)) {
+                material[prop] = props[prop];
+            }
+        }
+        
+        // Ensure needed flags are set
+        material.needsUpdate = true;
     }
 }
 

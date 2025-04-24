@@ -13,6 +13,9 @@ class NodeManager {
         
         // Minimum distance between nodes for force simulation
         this.minNodeDistance = 100;
+        
+        // Material caches
+        this.materialCache = {};
     }
     
     /**
@@ -20,6 +23,8 @@ class NodeManager {
      * @param {Array} nodesData - Array of node data objects
      */
     initNodes(nodesData) {
+        console.log(`Initializing ${nodesData.length} nodes`);
+        
         // Calculate initial positions
         this.calculateInitialPositions(nodesData);
         
@@ -68,51 +73,21 @@ class NodeManager {
      * @param {Object} nodeData - Node data object
      */
     createNode(nodeData) {
-        // Initialize material cache if not already done
-        if (!this.materialCache) this.materialCache = {};
-
-        // Check if materials for this node type are already cached
-        if (!this.materialCache[nodeData.type]) {
-            this.materialCache[nodeData.type] = {
-                default: new THREE.MeshPhongMaterial(
-                    window.themeManager.createNodeMaterial(nodeData.type)
-                ),
-                selected: new THREE.MeshPhongMaterial(
-                    window.themeManager.createNodeMaterial(nodeData.type, 'selected')
-                ),
-                related: new THREE.MeshPhongMaterial(
-                    window.themeManager.createNodeMaterial(nodeData.type, 'related')
-                )
-            };
-        }
-
         // Get node position
         const position = this.nodePositions[nodeData.id];
-        if (!position) return;
+        if (!position) {
+            console.warn(`No position found for node ${nodeData.id}`);
+            return;
+        }
 
-        // Create node geometry and use cached material
+        // Create node geometry
         const geometry = new THREE.SphereGeometry(nodeData.size, 32, 32);
-        let material = this.materialCache[nodeData.type].default.clone();
-
-        // Debugging: Log material properties
-        console.log(`Creating material for node type: ${nodeData.type}`);
-        console.log('Material properties:', this.materialCache[nodeData.type].default);
-
-        // Ensure material properties are fully defined
-        const defaultMaterialProps = {
-            shininess: 30, // Default shininess
-            transparent: false, // Default transparency
-            opacity: 1.0, // Default opacity
-        };
-
-        // Merge default properties with material properties
-        const materialProps = {
-            ...defaultMaterialProps,
-            ...window.themeManager.createNodeMaterial(nodeData.type)
-        };
-
-        // Create material with merged properties
-        material = new THREE.MeshPhongMaterial(materialProps);
+        
+        // Get material from theme manager
+        const material = window.themeManager.getNodeMaterial(nodeData.type, 'default');
+        
+        // Log material creation for debugging
+        console.log(`Creating node ${nodeData.id} with type ${nodeData.type}, opacity: ${material.opacity}`);
 
         // Create mesh and position it
         const mesh = new THREE.Mesh(geometry, material);
@@ -123,7 +98,8 @@ class NodeManager {
             label: nodeData.label,
             nodeType: nodeData.type,
             level: nodeData.level,
-            connections: nodeData.connections
+            connections: nodeData.connections,
+            size: nodeData.size
         };
 
         // Add to scene and store reference
@@ -201,38 +177,34 @@ class NodeManager {
             return;
         }
 
-        // SAFETY CHECK: Ensure material exists
-        if (!nodeObj.material) {
-            console.error(`Node ${nodeId} has no material`);
-            return;
-        }
-
         try {
-            const materialProps = window.themeManager.createNodeMaterial(
+            // FIXED: Replace the entire material instead of updating properties
+            const oldMaterial = nodeObj.material;
+            const newMaterial = window.themeManager.getNodeMaterial(
                 nodeObj.userData.nodeType, 
                 state
             );
             
-            // CRITICAL FIX: Check each property before assigning
-            for (const prop in materialProps) {
-                if (materialProps.hasOwnProperty(prop)) {
-                    nodeObj.material[prop] = materialProps[prop];
-                }
+            nodeObj.material = newMaterial;
+            
+            // Dispose of old material to prevent memory leaks
+            if (oldMaterial) {
+                oldMaterial.dispose();
             }
+            
+            console.log(`Updated node ${nodeId} to state: ${state}, new opacity: ${newMaterial.opacity}`);
         } catch (error) {
             console.error(`Error updating node ${nodeId} state:`, error);
         }
     }
     
     /**
-     * Reset all nodes to default state with enhanced debugging
+     * Reset all nodes to default state
      */
     resetNodeStates() {
         console.log(`Resetting states for ${Object.keys(this.nodeObjects).length} nodes`);
         for (const id in this.nodeObjects) {
             try {
-                const node = this.nodeObjects[id];
-                console.log(`Resetting node ${id} - Current opacity: ${node.material.opacity}`);
                 this.updateNodeState(id, 'default');
             } catch (error) {
                 console.error(`Error resetting node state for ${id}:`, error);
@@ -367,6 +339,8 @@ class NodeManager {
      */
     updatePositionsWithForces(edges, is2DMode) {
         // Apply forces to nodes
+        let totalMovement = 0;
+        
         for (const id in this.nodeObjects) {
             const obj = this.nodeObjects[id];
             let forceX = 0;
@@ -427,9 +401,14 @@ class NodeManager {
             
             // Apply the forces with gentle damping
             const dampingFactor = 0.03; // Slower movement for less jittering
+            const oldX = obj.position.x;
+            const oldY = obj.position.y;
+            const oldZ = obj.position.z;
+            
             obj.position.x += forceX * dampingFactor;
             obj.position.y += forceY * dampingFactor;
             if (!is2DMode) obj.position.z += forceZ * dampingFactor;
+            else obj.position.z = 0;
             
             // Keep Z at 0 in 2D mode
             if (is2DMode) {
@@ -452,7 +431,15 @@ class NodeManager {
                     obj.position.z
                 );
             }
+            
+            // Calculate movement for stability detection
+            const dx = obj.position.x - oldX;
+            const dy = obj.position.y - oldY;
+            const dz = obj.position.z - oldZ;
+            totalMovement += Math.sqrt(dx*dx + dy*dy + dz*dz);
         }
+        
+        return totalMovement;
     }
     
     /**
@@ -476,20 +463,6 @@ class NodeManager {
         }
         
         return nearestNode;
-    }
-    
-    /**
-     * Log the range of z-values in nodePositions
-     */
-    logNodeZRange() {
-        const zValues = Object.values(this.nodePositions).map(pos => pos.z);
-        if (zValues.length > 0) {
-            const minZ = Math.min(...zValues);
-            const maxZ = Math.max(...zValues);
-            console.log(`Node Z-Range: Min Z = ${minZ}, Max Z = ${maxZ}`);
-        } else {
-            console.log('No nodes found in nodePositions.');
-        }
     }
 }
 
