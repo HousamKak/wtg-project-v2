@@ -1,3 +1,11 @@
+// Allow Three.js Vector3 and Color to be used directly with uniform3fv
+THREE.Vector3.prototype[Symbol.iterator] = function*() {
+  yield this.x; yield this.y; yield this.z;
+};
+THREE.Color.prototype[Symbol.iterator] = function*() {
+  yield this.r; yield this.g; yield this.b;
+};
+
 /**
  * CameraController.js
  * Manages camera movement, rotation, and zooming

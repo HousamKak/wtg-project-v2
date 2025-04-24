@@ -305,6 +305,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
+        // Allow Three.js Vector3 and Color to be used directly with uniform3fv
+        THREE.Vector3.prototype[Symbol.iterator] = function*() {
+          yield this.x; yield this.y; yield this.z;
+        };
+        THREE.Color.prototype[Symbol.iterator] = function*() {
+          yield this.r; yield this.g; yield this.b;
+        };
+
         // Define core configuration variables
         const rotationSpeed = 0.005;
         let is3DTransitioning = false;
@@ -1256,7 +1264,7 @@
                             labels.forEach(label => {
                                 label.position.set(
                                     obj.position.x,
-                                    obj.position.y + nodes.find(n => n.id === id).size + 5,
+                                    obj.position.y + (node ? node.size : 8) + 5,
                                     obj.position.z
                                 );
                             });
@@ -1304,7 +1312,7 @@
                                 labels.forEach(label => {
                                     label.position.set(
                                         obj.position.x,
-                                        obj.position.y + nodes.find(n => n.id === id).size + 5,
+                                        obj.position.y + (node ? node.size : 8) + 5,
                                         obj.position.z
                                     );
                                 });
