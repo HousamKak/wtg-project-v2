@@ -97,11 +97,18 @@ class EdgeManager {
     }
     
     /**
-     * Reset all edges to default state
+     * Reset all edges to default state with enhanced debugging
      */
     resetEdgeStates() {
-        this.edgeObjects.forEach(edge => {
-            this.updateEdgeState(edge, 'default');
+        console.log(`Resetting states for ${this.edgeObjects.length} edges`);
+        this.edgeObjects.forEach((edge, index) => {
+            try {
+                console.log(`Resetting edge ${index} - Current visibility: ${edge.visible}`);
+                edge.material.opacity = 1.0; // Reset opacity to default
+                edge.visible = true; // Ensure edge is visible
+            } catch (error) {
+                console.error(`Error resetting edge state for edge ${index}:`, error);
+            }
         });
     }
     

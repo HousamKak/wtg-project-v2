@@ -148,21 +148,21 @@ class SelectionManager {
     }
 
     /**
-     * Safely clear the current selection
+     * Safely clear the current selection with enhanced debugging
      */
     safelyClearSelection() {
         console.log('Safely clearing selection...');
-        
+
         // Store old selection ID before clearing
         const previousSelection = this.selectedNodeId;
         this.selectedNodeId = null;
-        
+
         // CRITICAL FIX: Check node existence before resetting states
         if (this.nodeManager) {
             // Verify nodes still exist before resetting
             const nodeCount = Object.keys(this.nodeManager.nodeObjects).length;
             console.log(`Resetting states for ${nodeCount} nodes`);
-            
+
             if (nodeCount > 0) {
                 try {
                     this.nodeManager.resetNodeStates();
@@ -175,14 +175,14 @@ class SelectionManager {
                 console.error('No nodes found in nodeManager! Graph may be missing.');
             }
         }
-        
+
         // Reset edge states only if edgeManager exists and has edges
         if (this.edgeManager) {
             const edgeCount = this.edgeManager.edgeObjects ? 
                 this.edgeManager.edgeObjects.length : 0;
-                
+
             console.log(`Resetting states for ${edgeCount} edges`);
-            
+
             if (edgeCount > 0) {
                 try {
                     this.edgeManager.resetEdgeStates();
@@ -191,7 +191,7 @@ class SelectionManager {
                 }
             }
         }
-        
+
         // Clear sidebar if needed
         if (this.sidebarManager) {
             try {

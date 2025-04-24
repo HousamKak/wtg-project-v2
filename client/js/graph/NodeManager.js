@@ -457,6 +457,20 @@ class NodeManager {
         
         return nearestNode;
     }
+    
+    /**
+     * Log the range of z-values in nodePositions
+     */
+    logNodeZRange() {
+        const zValues = Object.values(this.nodePositions).map(pos => pos.z);
+        if (zValues.length > 0) {
+            const minZ = Math.min(...zValues);
+            const maxZ = Math.max(...zValues);
+            console.log(`Node Z-Range: Min Z = ${minZ}, Max Z = ${maxZ}`);
+        } else {
+            console.log('No nodes found in nodePositions.');
+        }
+    }
 }
 
 // Add a global recovery function for emergency use
