@@ -92,7 +92,27 @@ class NodeManager {
 
         // Create node geometry and use cached material
         const geometry = new THREE.SphereGeometry(nodeData.size, 32, 32);
-        const material = this.materialCache[nodeData.type].default.clone();
+        let material = this.materialCache[nodeData.type].default.clone();
+
+        // Debugging: Log material properties
+        console.log(`Creating material for node type: ${nodeData.type}`);
+        console.log('Material properties:', this.materialCache[nodeData.type].default);
+
+        // Ensure material properties are fully defined
+        const defaultMaterialProps = {
+            shininess: 30, // Default shininess
+            transparent: false, // Default transparency
+            opacity: 1.0, // Default opacity
+        };
+
+        // Merge default properties with material properties
+        const materialProps = {
+            ...defaultMaterialProps,
+            ...window.themeManager.createNodeMaterial(nodeData.type)
+        };
+
+        // Create material with merged properties
+        material = new THREE.MeshPhongMaterial(materialProps);
 
         // Create mesh and position it
         const mesh = new THREE.Mesh(geometry, material);
