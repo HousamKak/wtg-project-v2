@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WTG: Where in the Graph - Math Knowledge Network</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #000;
+            color: #fff;
+        }
+        #graph-container {
+            width: 70%;
+            height: 100%;
+            position: relative;
+        }
+        #sidebar {
+            width: 30%;
+            height: 100%;
+            background-color: rgba(20, 20, 25, 0.95);
+            border-left: 1px solid #333;
+            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
+            transition: transform 0.3s ease;
+            color: #eee;
+        }
+        #sidebar.hidden {
+            transform: translateX(100%);
+        }
+        #sidebar h2 {
+            margin-top: 0;
+            color: #fff;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        #sidebar h3 {
+            color: #3498db;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        #sidebar p {
+            line-height: 1.6;
+            color: #ddd;
+        }
+        #sidebar .theorem-statement {
+            background-color: rgba(52, 152, 219, 0.2);
+            border-left: 4px solid #3498db;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        #sidebar .applications {
+            background-color: rgba(46, 204, 113, 0.2);
+            border-left: 4px solid #2ecc71;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        #sidebar .papers {
+            background-color: rgba(230, 126, 34, 0.2);
+            border-left: 4px solid #e67e22;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        #sidebar .papers a {
+            color: #e67e22;
+            text-decoration: none;
+        }
+        #sidebar .papers a:hover {
+            text-decoration: underline;
+        }
+        #sidebar .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        #sidebar .tag {
+            background-color: rgba(52, 152, 219, 0.3);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .edge-type {
+            font-style: italic;
+            color: #3498db;
+        }
+        #controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            background-color: rgba(20, 20, 25, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            color: #fff;
+            width: 180px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 8px;
+            display: block;
+            width: 100%;
+            text-align: left;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 5px rgba(0,0,0,0.3);
+        }
+        button.active {
+            background-color: #e74c3c;
+        }
+        button::before {
+            content: '';
+            position: absolute;
+            width: 5px;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-color: rgba(255,255,255,0.4);
+        }
+        #search-bar {
+            position: absolute;
+            top: 20px;
+            left: 220px;
+            z-index: 10;
+            width: 220px;
+        }
+        #search-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: rgba(20, 20, 25, 0.8);
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            backdrop-filter: blur(5px);
+        }
+        #search-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background-color: rgba(20, 20, 25, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            color: #fff;
+            z-index: 10;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        #info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+            background-color: rgba(20, 20, 25, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            color: #fff;
+            max-width: 300px;
+            text-align: right;
+        }
+        #title-banner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            font-weight: bold;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 0 10px rgba(52, 152, 219, 0.8);
+            z-index: 5;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 2s ease;
+        }
+        #title-banner.visible {
+            opacity: 1;
+        }
+        .edge-legend {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .edge-legend-item {
+            margin: 5px 0;
+            font-size: 12px;
+        }
+        .edge-color {
+            display: inline-block;
+            width: 30px;
+            height: 2px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div id="graph-container"></div>
+    <div id="sidebar" class="hidden">
+        <h2 id="theorem-title">Select a theorem</h2>
+        <div id="theorem-content">
+            <p>Click on a node in the graph to learn more about that theorem or concept.</p>
+        </div>
+    </div>
+    <div id="controls">
+        <h3 style="margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 8px;">WTG Controls</h3>
+        <button id="toggle-dimension">2D View</button>
+        <button id="toggle-rotation">Enable Rotation</button>
+        <button id="toggle-forces" class="active">Disable Forces</button>
+        <button id="reset-view">Reset View</button>
+        <button id="reset-positions">Reset Positions</button>
+        <button id="expand-view">Expand View</button>
+        
+        <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px;">
+            <label for="node-spacing" style="display: block; margin-bottom: 5px;">Node Spacing</label>
+            <input type="range" id="node-spacing" min="10" max="100" value="40" style="width: 100%; margin-bottom: 8px;">
+            <span id="spacing-value">40</span>
+        </div>
+    </div>
+    <div id="search-bar">
+        <input type="text" id="search-input" placeholder="Search theorems...">
+    </div>
+    <div class="legend">
+        <h3 style="margin-top: 0;">Node Types</h3>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #D32F2F;"></div>
+            <span>Axiom</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #1976D2;"></div>
+            <span>Definition</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #388E3C;"></div>
+            <span>Lemma</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #7B1FA2;"></div>
+            <span>Theorem</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #F57C00;"></div>
+            <span>Corollary</span>
+        </div>
+        
+        <div class="edge-legend">
+            <h3>Edge Types</h3>
+            <div class="edge-legend-item">
+                <span class="edge-color" style="background-color: #42A5F5;"></span>
+                <span>depends_on</span>
+            </div>
+            <div class="edge-legend-item">
+                <span class="edge-color" style="background-color: #66BB6A;"></span>
+                <span>proves</span>
+            </div>
+            <div class="edge-legend-item">
+                <span class="edge-color" style="background-color: #FF7043;"></span>
+                <span>generalizes</span>
+            </div>
+        </div>
+    </div>
+    <div id="info">
+        <p>Click: Select node</p>
+        <p>Left-click + drag: Rotate</p>
+        <p>Right-click + drag: Pan</p>
+        <p>Mouse wheel: Zoom</p>
+    </div>
+    <div id="title-banner">
+        <div id="title-main">WTG: Where in the Graph</div>
+    </div>
+
+    <!-- Three.js core only -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // Define core configuration variables
+        const rotationSpeed = 0.005;
+        let is3DTransitioning = false;
+        const originalPositions = {};
+        
+        // Force-directed layout - enabled by default
+        let useForces = true;
+        let simulating = false;
+        
+        // View mode - 3D by default
+        let is2DMode = false;
+        
+        // Node spacing parameter - controls repulsion force
+        let minNodeDistance = 40; // Initial minimum distance between nodes
+
+        // Theorem details database
+        const theoremDetails = {
+            'zfc': {
+                title: 'Zermelo-Fraenkel Set Theory with Choice (ZFC)',
+                node_type: 'Axiom',
+                statement: 'A collection of axioms that form the foundation for mathematics, including the Axiom of Extensionality, Pairing, Union, Power Set, Infinity, Replacement, Foundation, and Choice.',
+                explanation: 'ZFC provides the foundational axioms from which almost all of mathematics can be derived. It formalizes the notion of sets and the operations that can be performed on them, and serves as the starting point for constructing mathematical objects and proving theorems.',
+                prerequisites: 'Basic understanding of logic and axiomatic systems.',
+                applications: 'Foundation for all branches of mathematics, including analysis, algebra, topology, and more.',
+                papers: [
+                    { title: 'Investigations in the foundations of set theory', author: 'Zermelo, E.', year: '1908' },
+                    { title: 'On the foundations of set theory and the continuum problem', author: 'Gödel, K.', year: '1947' }
+                ],
+                tags: ['set theory', 'foundations', 'logic']
+            },
+            'completeness': {
+                title: 'Completeness Axiom',
+                node_type: 'Axiom',
+                statement: 'Every non-empty set of real numbers that is bounded above has a least upper bound (supremum).',
+                statement_latex: '\\forall S \\subset \\mathbb{R}, S \\neq \\emptyset, \\exists b \\in \\mathbb{R} \\text{ s.t. } \\forall x \\in S, x \\leq b \\Rightarrow \\exists \\sup S',
+                explanation: 'The completeness axiom is what distinguishes the real numbers from the rational numbers. It ensures there are no "gaps" in the real number line and allows for the development of calculus.',
+                prerequisites: 'Understanding of sets, bounds, and the concept of supremum/infimum.',
+                applications: 'Foundation for proving the existence of limits, continuity properties, and integral existence.',
+                papers: [
+                    { title: 'On the Completeness of the Real Numbers', author: 'Dedekind, R.', year: '1872' },
+                    { title: 'Alternative Axiomatizations of the Real Numbers', author: 'Tao, T.', year: '2011' }
+                ],
+                tags: ['analysis', 'real numbers', 'completeness']
+            },
+            'bolzano_weierstrass': {
+                title: 'Bolzano-Weierstrass Theorem',
+                node_type: 'Theorem',
+                statement: 'Every bounded sequence of real numbers has a convergent subsequence.',
+                statement_latex: '\\text{If } \\{a_n\\} \\text{ is bounded, then } \\exists \\text{ a subsequence } \\{a_{n_k}\\} \\text{ such that } \\lim_{k \\to \\infty} a_{n_k} \\text{ exists}',
+                explanation: 'This theorem is a direct consequence of the completeness of the real numbers. It provides a powerful tool for proving the existence of limits in various contexts.',
+                prerequisites: 'Sequences, convergence, boundedness, completeness axiom.',
+                proof_sketch: 'Use the nested intervals method: repeatedly bisect intervals containing infinitely many terms of the sequence.',
+                applications: 'Used to prove existence of solutions to differential equations, optimization problems, and in topology.',
+                papers: [
+                    { title: 'A new proof of the Bolzano-Weierstrass theorem', author: 'Dini, U.', year: '1892' },
+                    { title: 'Applications of Bolzano-Weierstrass in functional analysis', author: 'Banach, S.', year: '1932' }
+                ],
+                tags: ['analysis', 'sequences', 'convergence']
+            },
+            'ftc': {
+                title: 'Fundamental Theorem of Calculus',
+                node_type: 'Theorem',
+                statement: 'Part 1: If f is continuous on [a,b], then F(x) = ∫_a^x f(t)dt is differentiable on (a,b) and F\'(x) = f(x). Part 2: If f is continuous on [a,b] and F is any antiderivative of f, then ∫_a^b f(x)dx = F(b) - F(a).',
+                statement_latex: '\\text{Part 1: } \\frac{d}{dx}\\int_a^x f(t)dt = f(x) \\quad \\text{Part 2: } \\int_a^b f(x)dx = F(b) - F(a)',
+                explanation: 'The theorem establishes the relationship between differentiation and integration, showing they are inverse operations. It provides the basis for computing definite integrals using antiderivatives.',
+                prerequisites: 'Continuity, Riemann integration, differentiation, Mean Value Theorem.',
+                proof_sketch: 'For part 1, use the definition of the derivative and properties of integrals. For part 2, apply part 1 to the function F(x) - ∫_a^x f(t)dt.',
+                applications: 'Basis for computational methods in calculus, physics equations, engineering applications.',
+                papers: [
+                    { title: 'The historical development of the Fundamental Theorem of Calculus', author: 'Newton, I. & Leibniz, G.', year: '1670s' },
+                    { title: 'Extensions of the Fundamental Theorem to multiple integrals', author: 'Gauss, C.F.', year: '1813' }
+                ],
+                tags: ['calculus', 'analysis', 'integration', 'differentiation']
+            },
+            'zorns_lemma': {
+                title: 'Zorn\'s Lemma',
+                node_type: 'Lemma',
+                statement: 'If every chain in a partially ordered set has an upper bound, then the set has a maximal element.',
+                statement_latex: '\\text{If } (P, \\leq) \\text{ is a poset where every chain has an upper bound}, \\text{ then } P \\text{ has a maximal element}',
+                explanation: 'Zorn\'s Lemma is a powerful tool in set theory, equivalent to the Axiom of Choice. It provides a way to prove the existence of maximal elements in partially ordered sets.',
+                prerequisites: 'Set theory, axiom of choice, partial orders, upper and lower bounds of sets.',
+                proof_sketch: 'Start with an arbitrary element. If it\'s maximal, we\'re done. Otherwise, build a chain by successively selecting larger elements. Use the axiom of choice to continue this process. Since every chain has an upper bound, this process produces a maximal element.',
+                applications: 'Used in proofs across algebra, analysis, and topology. Examples include the existence of bases in vector spaces, maximal ideals in rings, and the Hahn-Banach theorem in functional analysis.',
+                papers: [
+                    { title: 'On Zorn\'s Lemma', author: 'Kuratowski, K.', year: '1922' },
+                    { title: 'Equivalents of the Axiom of Choice', author: 'Rubin, H. & Rubin, J.E.', year: '1963' }
+                ],
+                tags: ['set theory', 'order theory', 'axiom of choice']
+            },
+            'taylors_theorem': {
+                title: 'Taylor\'s Theorem',
+                node_type: 'Theorem',
+                statement: 'If f is n+1 times differentiable on an interval containing a, then for each x in the interval, f(x) can be written as a sum of terms calculated from the derivatives of f at a, plus a remainder term.',
+                statement_latex: 'f(x) = \\sum_{k=0}^{n} \\frac{f^{(k)}(a)}{k!}(x-a)^k + R_n(x)',
+                explanation: 'Taylor\'s Theorem allows us to approximate functions using polynomials constructed from their derivatives at a single point. It generalizes the idea of linear approximation to higher degrees.',
+                prerequisites: 'Calculus, differentiation, Mean Value Theorem.',
+                proof_sketch: 'Apply the Mean Value Theorem repeatedly to the difference between the function and its Taylor polynomial. The key insight is expressing the remainder in terms of an integral or using Cauchy\'s or Lagrange\'s form of the remainder.',
+                applications: 'Foundational for numerical approximations, error analysis, series expansions, and asymptotic analysis. Used in physics for approximating complex functions and in computer science for algorithm analysis.',
+                papers: [
+                    { title: 'Methodus incrementorum directa et inversa', author: 'Taylor, B.', year: '1715' },
+                    { title: 'On the remainder in Taylor\'s formula', author: 'Lagrange, J.L.', year: '1797' }
+                ],
+                tags: ['calculus', 'analysis', 'approximation theory']
+            },
+            'residue_theorem': {
+                title: 'Residue Theorem',
+                node_type: 'Theorem',
+                statement: 'Let U be a simply connected open subset of the complex plane, and let f be a function holomorphic on U except for isolated singularities. Then for any closed contour γ in U that doesn\'t pass through any singularities, the contour integral equals 2πi times the sum of the residues of f at the singularities inside γ.',
+                statement_latex: '\\oint_\\gamma f(z)\\,dz = 2\\pi i \\sum\\limits_{a_k \\in \\text{Int}(\\gamma)} \\text{Res}(f, a_k)',
+                explanation: 'The Residue Theorem is a powerful result in complex analysis that allows us to evaluate certain integrals by analyzing the behavior of functions at their singularities, rather than directly computing the integral.',
+                prerequisites: 'Complex analysis, contour integration, Laurent series, singularities of complex functions.',
+                proof_sketch: 'Decompose the region into simple pieces using Cauchy\'s theorem. For each singularity, use a small circle and Laurent series to compute the residue, then apply Cauchy\'s integral formula.',
+                applications: 'Used extensively in physics (quantum field theory, fluid dynamics), engineering (signal processing), and mathematics (evaluation of improper real integrals, number theory).',
+                papers: [
+                    { title: 'Théorie des fonctions analytiques', author: 'Cauchy, A.L.', year: '1827' },
+                    { title: 'Applications of complex analysis in physics', author: 'Sommerfeld, A.', year: '1934' }
+                ],
+                tags: ['complex analysis', 'integration theory', 'singularity theory']
+            },
+            'uniform_boundedness': {
+                title: 'Uniform Boundedness Principle',
+                node_type: 'Theorem',
+                statement: 'Let X be a Banach space and Y a normed vector space. If F is a collection of bounded linear operators from X to Y such that for each x in X, the set {Tx : T in F} is bounded in Y, then the set of operator norms {||T|| : T in F} is bounded.',
+                statement_latex: '\\sup_{x \\in X, \\|x\\| \\leq 1} \\sup_{T \\in F} \\|Tx\\| < \\infty',
+                explanation: 'Also known as the Banach-Steinhaus theorem, this principle states that a family of bounded linear operators that is pointwise bounded must be uniformly bounded. It\'s a cornerstone of functional analysis.',
+                prerequisites: 'Functional analysis, Banach spaces, bounded linear operators, Baire category theorem.',
+                proof_sketch: 'Define sets E_n = {x in X : ||Tx|| ≤ n for all T in F}. By pointwise boundedness, X is the union of these sets. By Baire category, one of these sets must contain a ball. Use this to establish uniform boundedness.',
+                applications: 'Crucial in proving convergence theorems for Fourier series, analyzing partial differential equations, and establishing properties of Hilbert and Banach spaces.',
+                papers: [
+                    { title: 'Sur les opérations dans les ensembles abstraits et leur application aux équations intégrales', author: 'Banach, S.', year: '1922' },
+                    { title: 'Über die Konvergenz von Funktionaloperatoren', author: 'Steinhaus, H.', year: '1927' }
+                ],
+                tags: ['functional analysis', 'operator theory', 'Banach spaces']
+            }
+        };
+        
+        // Node data with WTG structure - expanded content
+        const nodes = [
+            // Axioms
+            { id: 'zfc', label: 'ZFC Set Theory', type: 'Axiom', description: 'Zermelo-Fraenkel set theory with the Axiom of Choice', tags: ['set theory', 'foundations', 'logic'], level: 1, size: 12, connections: 5 },
+            { id: 'axiom_choice', label: 'Axiom of Choice', type: 'Axiom', description: 'For any collection of non-empty sets, there exists a choice function', tags: ['set theory', 'foundations'], level: 1, size: 11, connections: 4 },
+            { id: 'axiom_infinity', label: 'Axiom of Infinity', type: 'Axiom', description: 'There exists an infinite set', tags: ['set theory', 'foundations'], level: 1, size: 10, connections: 3 },
+            
+            // Definitions
+            { id: 'set_operations', label: 'Set Operations', type: 'Definition', description: 'Basic operations on sets: union, intersection, complement, etc.', tags: ['set theory'], level: 2, size: 8, connections: 3 },
+            { id: 'relations', label: 'Relations', type: 'Definition', description: 'Binary relations between sets and their properties', tags: ['set theory'], level: 2, size: 8, connections: 3 },
+            { id: 'functions', label: 'Functions', type: 'Definition', description: 'Functions as special types of relations', tags: ['set theory'], level: 2, size: 8, connections: 4 },
+            { id: 'cardinality', label: 'Cardinality', type: 'Definition', description: 'Measure of the size of a set', tags: ['set theory'], level: 2, size: 8, connections: 3 },
+            { id: 'partial_order', label: 'Partial Orders', type: 'Definition', description: 'Relations that are reflexive, antisymmetric, and transitive', tags: ['set theory', 'order theory'], level: 2, size: 8, connections: 2 },
+            
+            // Number systems (mix of definitions and axioms)
+            { id: 'natural_numbers', label: 'Natural Numbers', type: 'Definition', description: 'The set of natural numbers and Peano axioms', tags: ['number theory'], level: 3, size: 8, connections: 2 },
+            { id: 'integers', label: 'Integers', type: 'Definition', description: 'Extension of natural numbers to include negative numbers', tags: ['number theory'], level: 3, size: 8, connections: 2 },
+            { id: 'rationals', label: 'Rational Numbers', type: 'Definition', description: 'Numbers expressible as fractions of integers', tags: ['number theory', 'algebra'], level: 3, size: 8, connections: 2 },
+            { id: 'real_numbers', label: 'Real Numbers', type: 'Definition', description: 'Complete ordered field extending rational numbers', tags: ['analysis', 'number theory'], level: 3, size: 9, connections: 5 },
+            { id: 'completeness', label: 'Completeness Axiom', type: 'Axiom', description: 'Every non-empty set of real numbers bounded above has a least upper bound', tags: ['analysis'], level: 3, size: 10, connections: 4 },
+            { id: 'complex_numbers', label: 'Complex Numbers', type: 'Definition', description: 'Extension of real numbers with imaginary unit i', tags: ['analysis', 'algebra'], level: 3, size: 9, connections: 3 },
+            
+            // Analysis foundations
+            { id: 'sequence', label: 'Sequence', type: 'Definition', description: 'A function from natural numbers to another set', tags: ['analysis'], level: 4, size: 8, connections: 3 },
+            { id: 'limit', label: 'Limit', type: 'Definition', description: 'The value a function or sequence approaches as input approaches a given value', tags: ['analysis'], level: 4, size: 8, connections: 3 },
+            { id: 'continuity', label: 'Continuity', type: 'Definition', description: 'Property of functions preserving limits', tags: ['analysis', 'topology'], level: 4, size: 8, connections: 4 },
+            { id: 'differentiation', label: 'Differentiation', type: 'Definition', description: 'The rate of change of a function at a point', tags: ['calculus', 'analysis'], level: 4, size: 8, connections: 4 },
+            { id: 'integration', label: 'Integration', type: 'Definition', description: 'The accumulation of quantities over an interval', tags: ['calculus', 'analysis'], level: 4, size: 8, connections: 3 },
+            { id: 'metric_space', label: 'Metric Space', type: 'Definition', description: 'A set with a distance function satisfying certain properties', tags: ['topology', 'analysis'], level: 4, size: 8, connections: 3 },
+            
+            // Lemmas and theorems
+            { id: 'zorns_lemma', label: 'Zorn\'s Lemma', type: 'Lemma', description: 'If every chain in a partially ordered set has an upper bound, then the set has a maximal element', tags: ['set theory', 'order theory'], level: 5, size: 9, connections: 3 },
+            { id: 'bolzano_weierstrass', label: 'Bolzano-Weierstrass', type: 'Theorem', description: 'Every bounded sequence has a convergent subsequence', tags: ['analysis'], level: 5, size: 9, connections: 3 },
+            { id: 'monotone_convergence', label: 'Monotone Convergence', type: 'Theorem', description: 'Every bounded monotone sequence converges', tags: ['analysis'], level: 5, size: 9, connections: 2 },
+            { id: 'cauchy_criterion', label: 'Cauchy Criterion', type: 'Theorem', description: 'A sequence converges if and only if it is Cauchy', tags: ['analysis'], level: 5, size: 8, connections: 3 },
+            { id: 'heine_borel', label: 'Heine-Borel Theorem', type: 'Theorem', description: 'A subset of R^n is compact if and only if it is closed and bounded', tags: ['topology', 'analysis'], level: 5, size: 9, connections: 3 },
+            { id: 'banach_fixed_point', label: 'Banach Fixed-Point', type: 'Theorem', description: 'A contraction mapping on a complete metric space has a unique fixed point', tags: ['analysis', 'topology'], level: 5, size: 9, connections: 2 },
+            
+            // Advanced theorems
+            { id: 'intermediate_value', label: 'Intermediate Value', type: 'Theorem', description: 'If f is continuous on [a,b] with f(a)<c<f(b), then f(x)=c for some x in [a,b]', tags: ['analysis'], level: 6, size: 9, connections: 2 },
+            { id: 'mean_value', label: 'Mean Value Theorem', type: 'Theorem', description: 'For a continuous function on a closed interval, there exists a point where the derivative equals the average rate of change', tags: ['calculus', 'analysis'], level: 6, size: 9, connections: 3 },
+            { id: 'ftc', label: 'Fundamental Theorem', type: 'Theorem', description: 'The definite integral of a function can be computed using its antiderivative', tags: ['calculus', 'analysis'], level: 6, size: 10, connections: 2 },
+            { id: 'taylors_theorem', label: 'Taylor\'s Theorem', type: 'Theorem', description: 'A function can be approximated by a sum of terms calculated from its derivatives at a single point', tags: ['calculus', 'analysis'], level: 6, size: 9, connections: 3 },
+            { id: 'open_mapping', label: 'Open Mapping Theorem', type: 'Theorem', description: 'A continuous surjective linear map between Banach spaces is an open map', tags: ['functional analysis'], level: 6, size: 9, connections: 2 },
+            { id: 'contraction_principle', label: 'Contraction Principle', type: 'Theorem', description: 'A fixed-point method for solving equations', tags: ['analysis', 'differential equations'], level: 6, size: 8, connections: 2 },
+            
+            // Corollaries
+            { id: 'rolle', label: 'Rolle\'s Theorem', type: 'Corollary', description: 'If f is differentiable on [a,b] and f(a)=f(b), then f\'(c)=0 for some c in (a,b)', tags: ['calculus', 'analysis'], level: 6, size: 7, connections: 1 },
+            { id: 'lhopitals_rule', label: 'L\'Hôpital\'s Rule', type: 'Corollary', description: 'Method for evaluating limits of indeterminate forms', tags: ['calculus', 'analysis'], level: 6, size: 7, connections: 2 },
+            { id: 'closed_graph', label: 'Closed Graph Theorem', type: 'Corollary', description: 'A linear operator is continuous if and only if its graph is closed', tags: ['functional analysis'], level: 7, size: 7, connections: 1 },
+            { id: 'lebesgue_number', label: 'Lebesgue Number Lemma', type: 'Lemma', description: 'For any open cover of a compact metric space, there exists a positive number such that any set with diameter less than this number is contained in some member of the cover', tags: ['topology'], level: 7, size: 7, connections: 2 },
+            
+            // More advanced
+            { id: 'baire_category', label: 'Baire Category Theorem', type: 'Theorem', description: 'A complete metric space cannot be written as the countable union of nowhere dense sets', tags: ['topology', 'analysis'], level: 7, size: 8, connections: 2 },
+            { id: 'uniform_boundedness', label: 'Uniform Boundedness', type: 'Theorem', description: 'A family of pointwise bounded continuous linear operators is uniformly bounded', tags: ['functional analysis'], level: 7, size: 8, connections: 2 },
+            { id: 'residue_theorem', label: 'Residue Theorem', type: 'Theorem', description: 'The contour integral of a function equals 2πi times the sum of the residues inside the contour', tags: ['complex analysis'], level: 7, size: 9, connections: 2 },
+            { id: 'riesz_representation', label: 'Riesz Representation', type: 'Theorem', description: 'A continuous linear functional on a Hilbert space is represented by inner product with a unique vector', tags: ['functional analysis'], level: 7, size: 9, connections: 3 }
+        ];
+
+        // Edge data with WTG structure - expanded connections
+        const edges = [
+            // ZFC and axioms
+            { source: 'zfc', target: 'axiom_choice', type: 'proves' },
+            { source: 'zfc', target: 'axiom_infinity', type: 'proves' },
+            { source: 'zfc', target: 'set_operations', type: 'depends_on' },
+            { source: 'zfc', target: 'relations', type: 'depends_on' },
+            { source: 'zfc', target: 'functions', type: 'depends_on' },
+            { source: 'zfc', target: 'cardinality', type: 'depends_on' },
+            
+            // Set theory connections
+            { source: 'relations', target: 'partial_order', type: 'proves' },
+            { source: 'axiom_choice', target: 'zorns_lemma', type: 'proves' },
+            { source: 'partial_order', target: 'zorns_lemma', type: 'depends_on' },
+            
+            // Building number systems
+            { source: 'set_operations', target: 'natural_numbers', type: 'proves' },
+            { source: 'axiom_infinity', target: 'natural_numbers', type: 'depends_on' },
+            { source: 'natural_numbers', target: 'integers', type: 'generalizes' },
+            { source: 'integers', target: 'rationals', type: 'generalizes' },
+            { source: 'rationals', target: 'real_numbers', type: 'generalizes' },
+            { source: 'real_numbers', target: 'completeness', type: 'depends_on' },
+            { source: 'real_numbers', target: 'complex_numbers', type: 'generalizes' },
+            
+            // Analysis foundations
+            { source: 'functions', target: 'sequence', type: 'generalizes' },
+            { source: 'functions', target: 'limit', type: 'depends_on' },
+            { source: 'limit', target: 'continuity', type: 'proves' },
+            { source: 'limit', target: 'differentiation', type: 'proves' },
+            { source: 'continuity', target: 'integration', type: 'depends_on' },
+            { source: 'cardinality', target: 'metric_space', type: 'depends_on' },
+            { source: 'real_numbers', target: 'metric_space', type: 'proves' },
+            
+            // Theorems based on completeness
+            { source: 'completeness', target: 'bolzano_weierstrass', type: 'proves' },
+            { source: 'completeness', target: 'monotone_convergence', type: 'proves' },
+            { source: 'completeness', target: 'cauchy_criterion', type: 'proves' },
+            { source: 'metric_space', target: 'heine_borel', type: 'proves' },
+            { source: 'metric_space', target: 'banach_fixed_point', type: 'proves' },
+            
+            // Continuity theorems
+            { source: 'continuity', target: 'intermediate_value', type: 'proves' },
+            { source: 'continuity', target: 'mean_value', type: 'depends_on' },
+            { source: 'banach_fixed_point', target: 'contraction_principle', type: 'generalizes' },
+            
+            // Calculus connections
+            { source: 'mean_value', target: 'rolle', type: 'generalizes' },
+            { source: 'differentiation', target: 'mean_value', type: 'depends_on' },
+            { source: 'mean_value', target: 'ftc', type: 'depends_on' },
+            { source: 'integration', target: 'ftc', type: 'depends_on' },
+            { source: 'differentiation', target: 'taylors_theorem', type: 'proves' },
+            { source: 'mean_value', target: 'lhopitals_rule', type: 'proves' },
+            
+            // Advanced analysis connections
+            { source: 'cauchy_criterion', target: 'uniform_boundedness', type: 'depends_on' },
+            { source: 'heine_borel', target: 'baire_category', type: 'depends_on' },
+            { source: 'banach_fixed_point', target: 'open_mapping', type: 'depends_on' },
+            { source: 'open_mapping', target: 'closed_graph', type: 'proves' },
+            { source: 'heine_borel', target: 'lebesgue_number', type: 'proves' },
+            
+            // Complex analysis
+            { source: 'complex_numbers', target: 'residue_theorem', type: 'depends_on' },
+            
+            // Functional analysis
+            { source: 'metric_space', target: 'riesz_representation', type: 'depends_on' },
+            { source: 'uniform_boundedness', target: 'riesz_representation', type: 'depends_on' }
+        ];
+
+        // Helper function to get color based on node type
+        function getNodeColor(type) {
+            const colors = {
+                'Axiom': 0xD32F2F,       // Bright red
+                'Definition': 0x1976D2,   // Bright blue
+                'Lemma': 0x388E3C,        // Bright green
+                'Theorem': 0x7B1FA2,      // Bright purple
+                'Corollary': 0xF57C00     // Bright orange
+            };
+            return colors[type] || 0x607D8B; // Default gray
+        }
+        
+        // Helper function to get color based on edge type
+        function getEdgeColor(type) {
+            const colors = {
+                'depends_on': 0x42A5F5,    // Light blue
+                'proves': 0x66BB6A,         // Light green
+                'generalizes': 0xFF7043     // Light orange
+            };
+            return colors[type] || 0xBDBDBD; // Default light gray
+        }
+
+        // Scene setup
+        const container = document.getElementById('graph-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);
+
+        // Camera setup
+        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.z = 300;
+
+        // Renderer setup
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0x404040, 1);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(1, 1, 1).normalize();
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xffffff, 1, 500);
+        pointLight.position.set(0, 0, 100);
+        scene.add(pointLight);
+
+        // Position nodes in 3D space using a force-directed approach
+        const nodeObjects = {};
+        const nodePositions = {};
+        
+        // Initial positions
+        nodes.forEach(node => {
+            // Create geometric positions based on level - more compact layout
+            const radius = 20 + node.connections * 5; // Radius depends on connections
+            const yFactor = 20; // Vertical spacing between levels
+            
+            let angle, x, y, z;
+            
+            // Different layout for each level
+            if (node.id === 'zfc') {
+                // ZFC at center
+                x = 0; y = 0; z = 0;
+            } else {
+                // Position based on level and connections
+                const nodesInLevel = nodes.filter(n => n.level === node.level).length;
+                const indexInLevel = nodes.filter(n => n.level === node.level).findIndex(n => n.id === node.id);
+                
+                // Calculate angle evenly distributed around circle
+                angle = (indexInLevel / nodesInLevel) * Math.PI * 2;
+                
+                // Calculate position - more connected nodes closer to center
+                const radiusMultiplier = 1 - (node.connections / 10); // Connection factor
+                x = radius * Math.cos(angle) * radiusMultiplier;
+                z = radius * Math.sin(angle) * radiusMultiplier;
+                y = -50 + node.level * yFactor; // Higher level nodes higher up
+            }
+            
+            // Store initial position
+            nodePositions[node.id] = new THREE.Vector3(x, y, z);
+        });
+        
+        // Create node objects
+        nodes.forEach(node => {
+            // Create a glowing sphere geometry
+            const geometry = new THREE.SphereGeometry(node.size, 32, 32);
+            
+            // Create material with glow effect
+            const material = new THREE.MeshPhongMaterial({
+                color: getNodeColor(node.type),
+                emissive: getNodeColor(node.type),
+                emissiveIntensity: 0.4,
+                shininess: 60,
+                transparent: true,
+                opacity: 0.85
+            });
+            
+            // Create the mesh and position it
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.copy(nodePositions[node.id]);
+            mesh.userData = { 
+                id: node.id, 
+                type: 'node',
+                label: node.label,
+                nodeType: node.type,
+                level: node.level,
+                connections: node.connections
+            };
+            
+            // Add to scene and store reference
+            scene.add(mesh);
+            nodeObjects[node.id] = mesh;
+            
+            // Create a text label for the node
+            createTextLabel(node, mesh.position);
+        });
+        
+        // Create text labels for nodes
+        function createTextLabel(node, position) {
+            // Create canvas for the label
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            
+            // Calculate font size based on node size
+            const fontSize = Math.max(Math.round(node.size * 2), 16);
+            const padding = 8;
+            
+            // Measure text width
+            context.font = `bold ${fontSize}px Arial`;
+            const textMetrics = context.measureText(node.label);
+            const textWidth = textMetrics.width + padding * 2;
+            const textHeight = fontSize + padding * 2;
+            
+            // Size the canvas
+            canvas.width = textWidth;
+            canvas.height = textHeight;
+            
+            // Draw background
+            context.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw text
+            context.font = `bold ${fontSize}px Arial`;
+            context.fillStyle = '#ffffff';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(node.label, canvas.width / 2, canvas.height / 2);
+            
+            // Create texture
+            const texture = new THREE.CanvasTexture(canvas);
+            
+            // Create sprite material
+            const material = new THREE.SpriteMaterial({ map: texture });
+            
+            // Create sprite and position it
+            const sprite = new THREE.Sprite(material);
+            sprite.position.set(position.x, position.y + node.size + 5, position.z);
+            sprite.scale.set(textWidth / 6, textHeight / 6, 1);
+            sprite.userData = { id: node.id, type: 'label' };
+            
+            // Add to scene
+            scene.add(sprite);
+            
+            return sprite;
+        }
+        
+        // Create edges between nodes
+        const edgeObjects = [];
+        edges.forEach(edge => {
+            // Get source and target positions
+            const source = nodePositions[edge.source];
+            const target = nodePositions[edge.target];
+            
+            if (!source || !target) return;
+            
+            // Create line material based on edge type
+            const material = new THREE.LineBasicMaterial({ 
+                color: getEdgeColor(edge.type),
+                transparent: true,
+                opacity: 0.6,
+                linewidth: 2
+            });
+            
+            // Create line geometry
+            const points = [
+                source,
+                target
+            ];
+            
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const line = new THREE.Line(geometry, material);
+            line.userData = { 
+                sourceId: edge.source,
+                targetId: edge.target,
+                type: edge.type
+            };
+            
+            // Add to scene and store reference
+            scene.add(line);
+            edgeObjects.push(line);
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        // Raycaster for mouse interaction
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        // Mouse interaction variables
+        let isDragging = false;
+        let isPanning = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        
+        // Mouse down event for rotation and panning
+        renderer.domElement.addEventListener('mousedown', (event) => {
+            if (event.button === 0) { // Left click
+                isDragging = true;
+            } else if (event.button === 2) { // Right click
+                isPanning = true;
+            }
+            previousMousePosition = {
+                x: event.clientX,
+                y: event.clientY
+            };
+            
+            // Prevent context menu on right-click
+            renderer.domElement.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+            });
+        });
+        
+        // Mouse move event for rotation and panning
+        renderer.domElement.addEventListener('mousemove', (event) => {
+            if (!isDragging && !isPanning) return;
+            
+            const currentMousePosition = {
+                x: event.clientX,
+                y: event.clientY
+            };
+            
+            const deltaMove = {
+                x: currentMousePosition.x - previousMousePosition.x,
+                y: currentMousePosition.y - previousMousePosition.y
+            };
+            
+            if (isDragging) {
+                // Rotate scene based on mouse movement
+                const rotationFactor = 0.005;
+                rotateCamera(-deltaMove.x * rotationFactor);
+                
+                // Also rotate up/down around the x-axis
+                const xRotationMatrix = new THREE.Matrix4().makeRotationX(-deltaMove.y * rotationFactor);
+                const cameraPosition = new THREE.Vector3().copy(camera.position);
+                cameraPosition.applyMatrix4(xRotationMatrix);
+                camera.position.copy(cameraPosition);
+                camera.lookAt(0, 0, 0);
+            }
+            
+            if (isPanning) {
+                // Pan camera based on mouse movement
+                const panSpeed = 0.5;
+                const panLeft = deltaMove.x * panSpeed;
+                const panUp = deltaMove.y * panSpeed;
+                
+                // Pan by moving camera and look target
+                const right = new THREE.Vector3();
+                const up = new THREE.Vector3(0, 1, 0);
+                camera.getWorldDirection(right);
+                right.cross(up).normalize();
+                
+                camera.position.add(right.multiplyScalar(-panLeft));
+                camera.position.add(up.multiplyScalar(panUp));
+            }
+            
+            previousMousePosition = {
+                x: currentMousePosition.x,
+                y: currentMousePosition.y
+            };
+        });
+        
+        // Mouse up event to stop rotation/panning
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+            isPanning = false;
+        });
+        
+        // Mouse wheel event for zooming - reduced sensitivity
+        renderer.domElement.addEventListener('wheel', (event) => {
+            event.preventDefault();
+            const zoomSpeed = 5; // Reduced from 10 to 5 for more gradual zooming
+            const delta = -Math.sign(event.deltaY) * zoomSpeed;
+            zoomCamera(delta);
+        });
+        
+        // Mouse click event for node selection
+        renderer.domElement.addEventListener('click', (event) => {
+            // Only process as a click if we didn't drag much
+            if (Math.abs(event.clientX - previousMousePosition.x) > 5 || 
+                Math.abs(event.clientY - previousMousePosition.y) > 5) {
+                return;
+            }
+            
+            // Get mouse position
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            // Cast ray
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children);
+            
+            // Check for hits
+            for (let i = 0; i < intersects.length; i++) {
+                const object = intersects[i].object;
+                if (object.userData && object.userData.type === 'node') {
+                    // Show details in sidebar
+                    showTheoremDetails(object.userData.id);
+                    
+                    // Focus camera on the object
+                    focusCameraOn(object.position);
+                    
+                    // Highlight connected nodes and edges
+                    highlightConnections(object.userData.id);
+                    
+                    break;
+                }
+            }
+        });
+
+        // Functions for sidebar interaction
+        function showTheoremDetails(nodeId) {
+            const sidebar = document.getElementById('sidebar');
+            const titleElement = document.getElementById('theorem-title');
+            const contentElement = document.getElementById('theorem-content');
+            
+            // Find node data
+            const node = nodes.find(n => n.id === nodeId);
+            
+            // Get detailed info if available, otherwise use basic node info
+            const theorem = theoremDetails[nodeId] || {
+                title: node?.label || 'Unknown',
+                node_type: node?.type || 'Unknown',
+                statement: node?.description || 'No statement available.',
+                explanation: 'Full details not available yet.',
+                prerequisites: 'Not specified.',
+                applications: 'Not specified.',
+                tags: node?.tags || []
+            };
+            
+            // Update sidebar content
+            titleElement.textContent = theorem.title;
+            
+            let content = '';
+            
+            // Node type
+            content += `<div class="node-type">${theorem.node_type}</div>`;
+            
+            // Tags if available
+            if (theorem.tags && theorem.tags.length > 0) {
+                content += '<div class="tags">';
+                theorem.tags.forEach(tag => {
+                    content += `<span class="tag">${tag}</span>`;
+                });
+                content += '</div>';
+            }
+            
+            // Statement
+            content += '<div class="theorem-statement">';
+            content += '<h3>Statement</h3>';
+            content += `<p>${theorem.statement}</p>`;
+            content += '</div>';
+            
+            // LaTeX statement if available
+            if (theorem.statement_latex) {
+                content += '<div class="latex-statement">';
+                content += `<p>LaTeX: <code>${theorem.statement_latex}</code></p>`;
+                content += '</div>';
+            }
+            
+            // Explanation
+            content += '<h3>Explanation</h3>';
+            content += `<p>${theorem.explanation}</p>`;
+            
+            // Prerequisites
+            content += '<h3>Prerequisites</h3>';
+            content += `<p>${theorem.prerequisites}</p>`;
+            
+            // Proof sketch if available
+            if (theorem.proof_sketch) {
+                content += '<h3>Proof Sketch</h3>';
+                content += `<p>${theorem.proof_sketch}</p>`;
+            }
+            
+            // Applications
+            content += '<div class="applications">';
+            content += '<h3>Applications</h3>';
+            content += `<p>${theorem.applications}</p>`;
+            content += '</div>';
+            
+            // Related Papers
+            if (theorem.papers && theorem.papers.length > 0) {
+                content += '<div class="papers">';
+                content += '<h3>Related Papers</h3>';
+                content += '<ul>';
+                theorem.papers.forEach(paper => {
+                    content += `<li><a href="#">${paper.title}</a> (${paper.author}, ${paper.year})</li>`;
+                });
+                content += '</ul>';
+                content += '</div>';
+            }
+            
+            // Relationships section
+            content += '<h3>Relationships</h3>';
+            
+            // Find incoming edges
+            const incomingEdges = edges.filter(e => e.target === nodeId);
+            if (incomingEdges.length > 0) {
+                content += '<div><strong>Depends on:</strong> ';
+                content += incomingEdges.map(e => {
+                    const sourceNode = nodes.find(n => n.id === e.source);
+                    return `<span class="edge-type">${e.type}</span> ${sourceNode.label}`;
+                }).join(', ');
+                content += '</div>';
+            }
+            
+            // Find outgoing edges
+            const outgoingEdges = edges.filter(e => e.source === nodeId);
+            if (outgoingEdges.length > 0) {
+                content += '<div><strong>Used in:</strong> ';
+                content += outgoingEdges.map(e => {
+                    const targetNode = nodes.find(n => n.id === e.target);
+                    return `<span class="edge-type">${e.type}</span> ${targetNode.label}`;
+                }).join(', ');
+                content += '</div>';
+            }
+            
+            contentElement.innerHTML = content;
+            sidebar.classList.remove('hidden');
+        }
+        
+        // Highlight connections to the selected node
+        function highlightConnections(nodeId) {
+            // Reset all nodes and edges
+            nodes.forEach(node => {
+                if (nodeObjects[node.id]) {
+                    const obj = nodeObjects[node.id];
+                    const material = obj.material;
+                    material.emissiveIntensity = 0.4;
+                    material.opacity = 0.85;
+                }
+            });
+            
+            edgeObjects.forEach(edge => {
+                edge.material.opacity = 0.6;
+            });
+            
+            // Highlight selected node
+            if (nodeObjects[nodeId]) {
+                const obj = nodeObjects[nodeId];
+                const material = obj.material;
+                material.emissiveIntensity = 0.8;
+                material.opacity = 1.0;
+            }
+            
+            // Find connected edges and nodes
+            const connectedEdges = edgeObjects.filter(edge => 
+                edge.userData.sourceId === nodeId || edge.userData.targetId === nodeId
+            );
+            
+            // Highlight connected edges
+            connectedEdges.forEach(edge => {
+                edge.material.opacity = 1.0;
+                
+                // Highlight connected nodes
+                const connectedNodeId = edge.userData.sourceId === nodeId ? 
+                    edge.userData.targetId : edge.userData.sourceId;
+                
+                if (nodeObjects[connectedNodeId]) {
+                    const obj = nodeObjects[connectedNodeId];
+                    const material = obj.material;
+                    material.emissiveIntensity = 0.6;
+                    material.opacity = 0.95;
+                }
+            });
+        }
+
+        // Focus camera on a position
+        function focusCameraOn(position) {
+            // Calculate where to place camera
+            const offset = new THREE.Vector3(0, 0, 50); // Offset from target
+            const targetPos = new THREE.Vector3().copy(position).add(offset);
+            
+            // Animate camera movement
+            const currentPos = camera.position.clone();
+            const frames = 30; // Number of frames for animation
+            let frame = 0;
+            
+            function animateCamera() {
+                if (frame < frames) {
+                    // Calculate position for this frame
+                    const t = frame / frames; // 0 to 1
+                    
+                    // Ease in-out function
+                    const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+                    
+                    // Update camera position
+                    camera.position.lerpVectors(currentPos, targetPos, ease);
+                    
+                    // Look at the target
+                    camera.lookAt(position);
+                    
+                    frame++;
+                    requestAnimationFrame(animateCamera);
+                }
+            }
+            
+            animateCamera();
+        }
+
+        // Toggle rotation button
+        document.getElementById('toggle-rotation').addEventListener('click', function() {
+            // Toggle rotation state using dataset
+            const currentState = this.dataset.active === 'true';
+            this.dataset.active = currentState ? 'false' : 'true';
+            this.textContent = currentState ? 'Enable Rotation' : 'Disable Rotation';
+            this.classList.toggle('active', !currentState);
+        });
+        
+        // Initialize rotation state
+        document.getElementById('toggle-rotation').dataset.active = 'false';
+        
+        document.getElementById('toggle-forces').addEventListener('click', function() {
+            useForces = !useForces;
+            this.classList.toggle('active', useForces);
+            this.textContent = useForces ? 'Disable Forces' : 'Enable Forces';
+            
+            if (useForces && !simulating) {
+                simulating = true;
+                simulateForces();
+            } else if (!useForces) {
+                // When forces are disabled, keep current positions stable
+                // This preserves the current layout without jiggling
+                for (const id in nodeObjects) {
+                    const obj = nodeObjects[id];
+                    originalPositions[id] = obj.position.clone();
+                }
+            }
+        });
+
+        // Toggle dimension
+        document.getElementById('toggle-dimension').addEventListener('click', function() {
+            toggleDimension();
+            this.textContent = is2DMode ? '3D View' : '2D View';
+        });
+
+        // Reset view button
+        document.getElementById('reset-view').addEventListener('click', function() {
+            // Animate camera back to default position
+            const targetPosition = new THREE.Vector3(0, 0, 300);
+            const startPosition = camera.position.clone();
+            const frames = 30;
+            let frame = 0;
+            
+            function animateReset() {
+                if (frame < frames) {
+                    const progress = frame / frames;
+                    const ease = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
+                    camera.position.lerpVectors(startPosition, targetPosition, ease);
+                    camera.lookAt(0, 0, 0);
+                    frame++;
+                    requestAnimationFrame(animateReset);
+                }
+            }
+            
+            animateReset();
+        });
+
+        // Add event listeners for UI controls
+        document.getElementById('node-spacing').addEventListener('input', function() {
+            minNodeDistance = parseInt(this.value);
+            document.getElementById('spacing-value').textContent = minNodeDistance;
+        });
+        
+        document.getElementById('reset-positions').addEventListener('click', function() {
+            // Reset all nodes to their original calculated positions
+            for (const id in nodeObjects) {
+                const originalPos = nodePositions[id];
+                if (originalPos) {
+                    nodeObjects[id].position.copy(originalPos);
+                    
+                    // Also update label positions
+                    const labels = scene.children.filter(
+                        c => c.userData && c.userData.type === 'label' && c.userData.id === id
+                    );
+                    
+                    labels.forEach(label => {
+                        const node = nodes.find(n => n.id === id);
+                        label.position.set(
+                            originalPos.x,
+                            originalPos.y + (node ? node.size : 8) + 5,
+                            originalPos.z
+                        );
+                    });
+                }
+            }
+            
+            // Update edges
+            updateEdgePositions();
+        });
+
+        document.getElementById('expand-view').addEventListener('click', function() {
+            const graphContainer = document.getElementById('graph-container');
+            const sidebar = document.getElementById('sidebar');
+            
+            if (graphContainer.style.width === '100%') {
+                graphContainer.style.width = '70%';
+                sidebar.classList.remove('hidden');
+            } else {
+                graphContainer.style.width = '100%';
+                sidebar.classList.add('hidden');
+            }
+            
+            // Force a resize event to update the graph
+            window.dispatchEvent(new Event('resize'));
+        });
+
+        // Camera control functions
+        function rotateCamera(angle) {
+            // Rotate around y-axis
+            const x = camera.position.x;
+            const z = camera.position.z;
+            
+            camera.position.x = x * Math.cos(angle) - z * Math.sin(angle);
+            camera.position.z = x * Math.sin(angle) + z * Math.cos(angle);
+            
+            camera.lookAt(0, 0, 0);
+        }
+
+        function zoomCamera(distance) {
+            // Move camera along current view direction
+            const direction = new THREE.Vector3(0, 0, 0).sub(camera.position).normalize();
+            camera.position.addScaledVector(direction, distance);
+        }
+        
+        // Toggle between 2D and 3D
+        function toggleDimension() {
+            is2DMode = !is2DMode;
+            is3DTransitioning = true;
+            
+            if (is2DMode) {
+                // Store original positions for reverting later
+                for (const id in nodePositions) {
+                    originalPositions[id] = nodePositions[id].clone();
+                }
+                
+                // Flatten to 2D (set all Z to 0)
+                const frames = 30;
+                let frame = 0;
+                
+                function animate2D() {
+                    if (frame < frames) {
+                        const progress = frame / frames;
+                        
+                        // Update each node position
+                        for (const id in nodeObjects) {
+                            const obj = nodeObjects[id];
+                            const targetPos = new THREE.Vector3(
+                                obj.position.x, 
+                                obj.position.y, 
+                                obj.position.z * (1 - progress) // Gradually reduce Z to 0
+                            );
+                            
+                            obj.position.lerp(targetPos, 0.1);
+                            
+                            // Update label positions
+                            const labels = scene.children.filter(
+                                c => c.userData && c.userData.type === 'label' && c.userData.id === id
+                            );
+                            
+                            labels.forEach(label => {
+                                label.position.set(
+                                    obj.position.x,
+                                    obj.position.y + nodes.find(n => n.id === id).size + 5,
+                                    obj.position.z
+                                );
+                            });
+                        }
+                        
+                        // Update edge positions
+                        updateEdgePositions();
+                        
+                        frame++;
+                        requestAnimationFrame(animate2D);
+                    } else {
+                        is3DTransitioning = false;
+                    }
+                }
+                
+                animate2D();
+            } else {
+                // Return to 3D positions
+                const frames = 30;
+                let frame = 0;
+                
+                function animate3D() {
+                    if (frame < frames) {
+                        const progress = frame / frames;
+                        
+                        // Update each node position
+                        for (const id in nodeObjects) {
+                            const obj = nodeObjects[id];
+                            const original = originalPositions[id];
+                            
+                            if (original) {
+                                const targetPos = new THREE.Vector3(
+                                    original.x,
+                                    original.y,
+                                    original.z * progress // Gradually increase Z back to original
+                                );
+                                
+                                obj.position.lerp(targetPos, 0.1);
+                                
+                                // Update label positions
+                                const labels = scene.children.filter(
+                                    c => c.userData && c.userData.type === 'label' && c.userData.id === id
+                                );
+                                
+                                labels.forEach(label => {
+                                    label.position.set(
+                                        obj.position.x,
+                                        obj.position.y + nodes.find(n => n.id === id).size + 5,
+                                        obj.position.z
+                                    );
+                                });
+                            }
+                        }
+                        
+                        // Update edge positions
+                        updateEdgePositions();
+                        
+                        frame++;
+                        requestAnimationFrame(animate3D);
+                    } else {
+                        is3DTransitioning = false;
+                    }
+                }
+                
+                animate3D();
+            }
+        }
+        
+        // Update edge positions to match node positions
+        function updateEdgePositions() {
+            edgeObjects.forEach(edge => {
+                const sourceId = edge.userData.sourceId;
+                const targetId = edge.userData.targetId;
+                
+                if (nodeObjects[sourceId] && nodeObjects[targetId]) {
+                    const sourcePos = nodeObjects[sourceId].position;
+                    const targetPos = nodeObjects[targetId].position;
+                    
+                    // Update the line geometry
+                    const points = [
+                        sourcePos.clone(),
+                        targetPos.clone()
+                    ];
+                    
+                    edge.geometry.dispose();
+                    edge.geometry = new THREE.BufferGeometry().setFromPoints(points);
+                }
+            });
+        }
+        
+        // Force-directed layout simulation - smoother with damping
+        function simulateForces() {
+            if (!useForces) {
+                simulating = false;
+                return;
+            }
+            
+            // Apply forces to nodes
+            for (const id in nodeObjects) {
+                const obj = nodeObjects[id];
+                let forceX = 0;
+                let forceY = 0;
+                let forceZ = 0;
+                
+                // Repulsion force between all nodes
+                for (const otherId in nodeObjects) {
+                    if (id === otherId) continue;
+                    
+                    const otherObj = nodeObjects[otherId];
+                    const dx = obj.position.x - otherObj.position.x;
+                    const dy = obj.position.y - otherObj.position.y;
+                    const dz = is2DMode ? 0 : obj.position.z - otherObj.position.z;
+                    
+                    const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                    
+                    if (distance > 0 && distance < minNodeDistance * 3) {
+                        // Stronger repulsion when nodes get closer than minNodeDistance
+                        let repulsionFactor;
+                        if (distance < minNodeDistance) {
+                            repulsionFactor = (minNodeDistance * 2) / (distance * distance);
+                        } else {
+                            repulsionFactor = 30 / (distance * distance);
+                        }
+                        
+                        forceX += dx * repulsionFactor;
+                        forceY += dy * repulsionFactor;
+                        if (!is2DMode) forceZ += dz * repulsionFactor;
+                    }
+                }
+                
+                // Attraction force for connected nodes
+                edges.forEach(edge => {
+                    if (edge.source === id || edge.target === id) {
+                        const otherId = edge.source === id ? edge.target : edge.source;
+                        const otherObj = nodeObjects[otherId];
+                        
+                        if (otherObj) {
+                            const dx = otherObj.position.x - obj.position.x;
+                            const dy = otherObj.position.y - obj.position.y;
+                            const dz = is2DMode ? 0 : otherObj.position.z - obj.position.z;
+                            
+                            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                            
+                            // The higher the connections count, the stronger the attraction
+                            const node = nodes.find(n => n.id === id);
+                            const connectionStrength = node ? node.connections * 0.01 : 0.03;
+                            
+                            if (distance > 20) {
+                                const attractionFactor = distance * connectionStrength;
+                                forceX += dx * attractionFactor;
+                                forceY += dy * attractionFactor;
+                                if (!is2DMode) forceZ += dz * attractionFactor;
+                            }
+                        }
+                    }
+                });
+                
+                // Apply the forces with gentler damping
+                const dampingFactor = 0.03; // Slower movement for less jittering
+                obj.position.x += forceX * dampingFactor;
+                obj.position.y += forceY * dampingFactor;
+                if (!is2DMode) obj.position.z += forceZ * dampingFactor;
+                
+                // Keep Z at 0 in 2D mode
+                if (is2DMode) {
+                    obj.position.z = 0;
+                }
+                
+                // Level constraint - keep nodes near their hierarchical level
+                const node = nodes.find(n => n.id === id);
+                if (node) {
+                    const targetY = -50 + node.level * 20;
+                    obj.position.y += (targetY - obj.position.y) * 0.01;
+                }
+                
+                // Update label position
+                const labels = scene.children.filter(
+                    c => c.userData && c.userData.type === 'label' && c.userData.id === id
+                );
+                
+                labels.forEach(label => {
+                    label.position.set(
+                        obj.position.x,
+                        obj.position.y + (node ? node.size : 8) + 5,
+                        obj.position.z
+                    );
+                });
+            }
+            
+            // Update edges
+            updateEdgePositions();
+            
+            // Continue animation
+            requestAnimationFrame(simulateForces);
+        }
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Check rotation state from the button element
+            const rotationButton = document.getElementById('toggle-rotation');
+            const isRotating = rotationButton && rotationButton.dataset.active === 'true';
+            
+            if (isRotating && !is2DMode && !is3DTransitioning) {
+                rotateCamera(rotationSpeed);
+            }
+            
+            renderer.render(scene, camera);
+        }
+        
+        // Start forces on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Start the simulation
+            simulating = true;
+            simulateForces();
+        });
+        
+        // Start animation loop
+        animate();
+    </script>
+</body>
+</html>
