@@ -284,12 +284,56 @@ class GraphManager {
     }
     
     /**
+     * Log the current status of the scene
+     */
+    logSceneStatus() {
+        console.group('Scene Status Check');
+        try {
+            const total = this.scene.children.length;
+            console.log(`Total scene objects: ${total}`);
+
+            const nodeCount = this.scene.children.filter(obj => obj.userData && obj.userData.type === 'node').length;
+            const edgeCount = this.scene.children.filter(obj => obj.type === 'Line').length;
+            const labelCount = this.scene.children.filter(obj => obj.userData && obj.userData.type === 'label').length;
+            const lightCount = this.scene.children.filter(obj => obj.type.includes('Light')).length;
+
+            console.log('Object counts by type:', {
+                nodes: nodeCount,
+                edges: edgeCount,
+                labels: labelCount,
+                lights: lightCount,
+                other: total - nodeCount - edgeCount - labelCount - lightCount
+            });
+
+            const invisibleNodes = this.scene.children.filter(obj => obj.userData && obj.userData.type === 'node' && (obj.visible === false || obj.material.opacity === 0)).length;
+            if (invisibleNodes > 0) {
+                console.warn(`Warning: ${invisibleNodes} nodes are invisible!`);
+            }
+
+            const nodeSample = this.scene.children.filter(obj => obj.userData && obj.userData.type === 'node').slice(0, 3);
+            nodeSample.forEach((node, i) => {
+                console.log(`Node sample ${i}:`, {
+                    id: node.userData.id,
+                    position: node.position.toArray(),
+                    visible: node.visible,
+                    opacity: node.material ? node.material.opacity : 'N/A',
+                    scale: node.scale.toArray()
+                });
+            });
+        } catch (error) {
+            console.error('Error during scene status logging:', error);
+        }
+        console.groupEnd();
+    }
+
+    /**
      * Start the animation loop
      * @param {boolean} enableRotation - Whether to enable automatic rotation
      */
     startAnimation(enableRotation = false) {
         const rotationSpeed = 0.005;
         let isRotating = enableRotation;
+        let frameCounter = 0;
 
         // Track frame errors to prevent crashing
         let consecutiveErrors = 0;
@@ -302,6 +346,12 @@ class GraphManager {
 
         // Main animation loop with error boundary
         const animate = () => {
+            frameCounter++;
+            if (frameCounter % 300 === 0) {
+                console.log(`Animation frame ${frameCounter} - Performing routine scene check`);
+                this.logSceneStatus();
+            }
+
             try {
                 // Rotate camera if enabled
                 if (isRotating && !this.is2DMode && !this.is3DTransitioning) {

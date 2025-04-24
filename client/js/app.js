@@ -351,8 +351,111 @@ function initLayoutFixes() {
 }
 
 document.addEventListener('DOMContentLoaded', initLayoutFixes);
-    
-    // Updated node spacing initialization
+
+/**
+ * Function to create and add legend to the graph interface
+ * Shows node types and edge types with their corresponding colors
+ */
+function createGraphLegend() {
+    console.log('Creating graph legend...');
+
+    // Check if legend already exists
+    if (document.querySelector('.legend')) {
+        console.log('Legend already exists, not creating duplicate');
+        return;
+    }
+
+    // Create legend container
+    const legend = document.createElement('div');
+    legend.className = 'legend';
+
+    // Add node types section
+    let html = `
+        <h3>Node Types</h3>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #D32F2F;"></div>
+            <span>Axiom</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #1976D2;"></div>
+            <span>Definition</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #388E3C;"></div>
+            <span>Lemma</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #7B1FA2;"></div>
+            <span>Theorem</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #F57C00;"></div>
+            <span>Corollary</span>
+        </div>
+    `;
+
+    // Add edge types section
+    html += `
+        <div class="edge-legend">
+            <h3>Edge Types</h3>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #42A5F5;"></div>
+                <span>Depends On</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #66BB6A;"></div>
+                <span>Proves</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #FF7043;"></div>
+                <span>Generalizes</span>
+            </div>
+        </div>
+    `;
+
+    legend.innerHTML = html;
+    document.body.appendChild(legend);
+
+    console.log('Legend created and added to document');
+}
+
+// Add this to the window load event
+window.addEventListener('load', createGraphLegend);
+
+// Also call this from initialize function in app.js
+// In the initialize function, add after everything else is initialized:
+// createGraphLegend();
+
+/**
+ * Update node spacing slider initialization
+ * Sets the initial value to 100 and updates the UI accordingly
+ */
+function initializeNodeSpacing() {
+    console.log('Initializing node spacing slider...');
     const nodeSpacingInput = document.getElementById('node-spacing');
-    nodeSpacingInput.value = 100;
+
+    if (nodeSpacingInput) {
+        // Set slider value to 100
+        nodeSpacingInput.value = 100;
+
+        // Update displayed value
+        const spacingValue = document.getElementById('spacing-value');
+        if (spacingValue) {
+            spacingValue.textContent = '100';
+        }
+
+        // Apply to force simulation if available
+        if (window.WTG && window.WTG.forceSimulation) {
+            window.WTG.forceSimulation.setMinNodeDistance(100);
+        }
+
+        console.log('Node spacing initialized to 100');
+    } else {
+        console.warn('Node spacing slider element not found');
+    }
+}
+
+// Call this immediately after DOM is loaded
+document.addEventListener('DOMContentLoaded', initializeNodeSpacing);
+
 })();

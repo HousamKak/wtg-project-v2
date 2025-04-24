@@ -119,19 +119,47 @@ class EventManager {
      * @param {Event} event - Mouse event
      */
     handleClick(event) {
-        // Only process as a click if we didn't drag much
-        if (Math.abs(event.clientX - this.previousMousePosition.x) > 5 || 
-            Math.abs(event.clientY - this.previousMousePosition.y) > 5) {
+        // Prevent handling if we're in the middle of dragging
+        if (this.isDragging || this.isPanning) {
+            console.log('Click ignored - currently dragging or panning');
+            return;
+        }
+
+        // Only process as a click if we didn't drag much since mousedown
+        const dragDistance = Math.sqrt(
+            Math.pow(event.clientX - this.previousMousePosition.x, 2) + 
+            Math.pow(event.clientY - this.previousMousePosition.y, 2)
+        );
+        
+        if (dragDistance > 5) {
+            console.log('Click ignored - detected as drag (distance > 5px)');
             return;
         }
 
         // Get mouse position in normalized device coordinates
         const rect = this.graphManager.renderer.domElement.getBoundingClientRect();
+        
+        // IMPORTANT FIX: Check if the renderer element has valid dimensions
+        if (rect.width === 0 || rect.height === 0) {
+            console.error('Renderer element has zero width or height!');
+            return;
+        }
+        
         this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-        // Perform selection
-        this.selectionManager.selectFromMouse(this.mouse);
+        // SAFETY CHECK: Ensure mouse coordinates are valid
+        if (!isFinite(this.mouse.x) || !isFinite(this.mouse.y)) {
+            console.error('Invalid mouse coordinates calculated:', this.mouse);
+            return;
+        }
+
+        // Perform selection with added safety
+        try {
+            this.selectionManager.selectFromMouse(this.mouse);
+        } catch (error) {
+            console.error('Error during selection:', error);
+        }
     }
     
     /**

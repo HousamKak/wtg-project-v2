@@ -76,38 +76,128 @@ class SelectionManager {
      * @param {Object} mouse - Mouse coordinates in normalized device coordinates
      */
     selectFromMouse(mouse) {
-        // Get intersections with scene objects
-        const intersects = this.graphManager.getIntersectedObjects(mouse);
+        // SAFETY CHECK: Validate mouse input
+        if (!mouse || !isFinite(mouse.x) || !isFinite(mouse.y)) {
+            console.error('Invalid mouse coordinates provided to selectFromMouse:', mouse);
+            return;
+        }
         
-        // Check for hits on nodes
-        for (let i = 0; i < intersects.length; i++) {
-            const object = intersects[i].object;
-            if (object.userData && object.userData.type === 'node') {
-                this.selectNode(object.userData.id);
-                return;
+        // Get intersections with scene objects
+        try {
+            const intersects = this.graphManager.getIntersectedObjects(mouse);
+            
+            // Check for hits on nodes
+            for (let i = 0; i < intersects.length; i++) {
+                const object = intersects[i].object;
+                if (object && object.userData && object.userData.type === 'node') {
+                    this.selectNode(object.userData.id);
+                    return;
+                }
+            }
+            
+            // If no node was hit, check if we should clear selection
+            if ((Math.abs(mouse.x) > 0.01 || Math.abs(mouse.y) > 0.01)) {
+                // Only handle clicks inside the graph container
+                const graphContainer = document.getElementById('graph-container');
+                if (!graphContainer) return;
+                
+                const rect = graphContainer.getBoundingClientRect();
+                
+                // Convert normalized device coordinates back to screen coordinates
+                const screenX = ((mouse.x + 1) / 2) * window.innerWidth;
+                const screenY = ((1 - mouse.y) / 2) * window.innerHeight;
+                
+                // IMPORTANT FIX: Check if click is on UI elements
+                const isOnUI = this.isClickOnUIElement(screenX, screenY);
+                
+                if (screenX >= rect.left && screenX <= rect.right && 
+                    screenY >= rect.top && screenY <= rect.bottom && !isOnUI) {
+                    // CRITICAL FIX: Carefully clear selection without affecting graph
+                    this.safelyClearSelection();
+                }
+            }
+        } catch (error) {
+            console.error('Error in selectFromMouse:', error);
+        }
+    }
+
+    /**
+     * Helper to check if click is on UI elements
+     * @param {number} x - Screen X coordinate
+     * @param {number} y - Screen Y coordinate
+     * @returns {boolean} - True if click is on a UI element
+     */
+    isClickOnUIElement(x, y) {
+        const uiElements = [
+            'controls', 'search-bar', 'info', 'sidebar', 'legend', 
+            'node-types', 'edge-types'
+        ];
+        
+        for (const id of uiElements) {
+            const element = document.getElementById(id);
+            if (element) {
+                const rect = element.getBoundingClientRect();
+                if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                    console.log(`Click detected on UI element: ${id}`);
+                    return true;
+                }
             }
         }
         
-        // If no node was hit, only clear selection if:
-        // 1. We have a valid mouse position (not 0,0)
-        // 2. The click isn't on UI elements - check if click is in graph container
-        if (intersects.length === 0 && 
-            (Math.abs(mouse.x) > 0.01 || Math.abs(mouse.y) > 0.01)) {
+        return false;
+    }
+
+    /**
+     * Safely clear the current selection
+     */
+    safelyClearSelection() {
+        console.log('Safely clearing selection...');
+        
+        // Store old selection ID before clearing
+        const previousSelection = this.selectedNodeId;
+        this.selectedNodeId = null;
+        
+        // CRITICAL FIX: Check node existence before resetting states
+        if (this.nodeManager) {
+            // Verify nodes still exist before resetting
+            const nodeCount = Object.keys(this.nodeManager.nodeObjects).length;
+            console.log(`Resetting states for ${nodeCount} nodes`);
             
-            // Get the graph container dimensions to determine if click is inside it
-            const graphContainer = document.getElementById('graph-container');
-            if (!graphContainer) return;
+            if (nodeCount > 0) {
+                try {
+                    this.nodeManager.resetNodeStates();
+                } catch (error) {
+                    console.error('Error resetting node states:', error);
+                    // Attempt to restore previous selection if reset fails
+                    this.selectedNodeId = previousSelection;
+                }
+            } else {
+                console.error('No nodes found in nodeManager! Graph may be missing.');
+            }
+        }
+        
+        // Reset edge states only if edgeManager exists and has edges
+        if (this.edgeManager) {
+            const edgeCount = this.edgeManager.edgeObjects ? 
+                this.edgeManager.edgeObjects.length : 0;
+                
+            console.log(`Resetting states for ${edgeCount} edges`);
             
-            const rect = graphContainer.getBoundingClientRect();
-            
-            // Convert normalized device coordinates back to screen coordinates
-            const screenX = ((mouse.x + 1) / 2) * window.innerWidth;
-            const screenY = ((1 - mouse.y) / 2) * window.innerHeight;
-            
-            // Only clear selection if click is within the graph container
-            if (screenX >= rect.left && screenX <= rect.right && 
-                screenY >= rect.top && screenY <= rect.bottom) {
-                this.clearSelection();
+            if (edgeCount > 0) {
+                try {
+                    this.edgeManager.resetEdgeStates();
+                } catch (error) {
+                    console.error('Error resetting edge states:', error);
+                }
+            }
+        }
+        
+        // Clear sidebar if needed
+        if (this.sidebarManager) {
+            try {
+                this.sidebarManager.clearDetails();
+            } catch (error) {
+                console.error('Error clearing sidebar:', error);
             }
         }
     }

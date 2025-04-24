@@ -208,40 +208,37 @@ class CameraController {
     }
     
     /**
-     * Focus camera on a specific position
+     * Focus camera on a specific position with debugging
      * @param {Object} position - THREE.js Vector3 position
      */
     focusOn(position) {
-        // Create target point at the position
+        console.log(`CameraController.focusOn called with position:`, position);
+
         const newTarget = position.clone();
-        
-        // Create a position offset from target point
         const offset = new THREE.Vector3(0, 0, 50);
         const newPosition = newTarget.clone().add(offset);
-        
-        // Save current positions for animation
+
         const startPosition = this.camera.position.clone();
         const startTarget = this.target.clone();
-        
-        // Animate to new position
+
         const frames = 30;
         let frame = 0;
-        
+
         const animate = () => {
             if (frame < frames) {
                 const progress = frame / frames;
                 const ease = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
-                
+
                 this.camera.position.lerpVectors(startPosition, newPosition, ease);
                 this.target.lerpVectors(startTarget, newTarget, ease);
-                
+
                 this.camera.lookAt(this.target);
-                
+
                 frame++;
                 requestAnimationFrame(animate);
             }
         };
-        
+
         animate();
     }
     

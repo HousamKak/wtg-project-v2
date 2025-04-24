@@ -176,22 +176,47 @@ class NodeManager {
      */
     updateNodeState(nodeId, state) {
         const nodeObj = this.nodeObjects[nodeId];
-        if (!nodeObj) return;
-        
-        const materialProps = window.themeManager.createNodeMaterial(
-            nodeObj.userData.nodeType, 
-            state
-        );
-        
-        Object.assign(nodeObj.material, materialProps);
+        if (!nodeObj) {
+            console.warn(`Node ${nodeId} not found for state update`);
+            return;
+        }
+
+        // SAFETY CHECK: Ensure material exists
+        if (!nodeObj.material) {
+            console.error(`Node ${nodeId} has no material`);
+            return;
+        }
+
+        try {
+            const materialProps = window.themeManager.createNodeMaterial(
+                nodeObj.userData.nodeType, 
+                state
+            );
+            
+            // CRITICAL FIX: Check each property before assigning
+            for (const prop in materialProps) {
+                if (materialProps.hasOwnProperty(prop)) {
+                    nodeObj.material[prop] = materialProps[prop];
+                }
+            }
+        } catch (error) {
+            console.error(`Error updating node ${nodeId} state:`, error);
+        }
     }
     
     /**
-     * Reset all nodes to default state
+     * Reset all nodes to default state with enhanced debugging
      */
     resetNodeStates() {
+        console.log(`Resetting states for ${Object.keys(this.nodeObjects).length} nodes`);
         for (const id in this.nodeObjects) {
-            this.updateNodeState(id, 'default');
+            try {
+                const node = this.nodeObjects[id];
+                console.log(`Resetting node ${id} - Current opacity: ${node.material.opacity}`);
+                this.updateNodeState(id, 'default');
+            } catch (error) {
+                console.error(`Error resetting node state for ${id}:`, error);
+            }
         }
     }
     
@@ -433,6 +458,45 @@ class NodeManager {
         return nearestNode;
     }
 }
+
+// Add a global recovery function for emergency use
+function recoverGraph() {
+    console.log('Attempting to recover graph...');
+
+    try {
+        // Check if graph exists in the scene
+        const nodeCount = window.WTG.nodeManager.getAllNodes();
+        const nodeIds = Object.keys(nodeCount);
+
+        if (nodeIds.length === 0) {
+            console.error('No nodes found! Attempting full reinitialize...');
+
+            // Clear scene
+            while (window.WTG.graphManager.scene.children.length > 0) {
+                const obj = window.WTG.graphManager.scene.children[0];
+                window.WTG.graphManager.scene.remove(obj);
+            }
+
+            // Reinitialize nodes and edges
+            window.WTG.nodeManager.initNodes(window.nodes || []);
+            window.WTG.edgeManager.initEdges(window.edges || []);
+
+            // Restart force simulation
+            if (window.WTG.forceSimulation) {
+                window.WTG.forceSimulation.start();
+            }
+
+            console.log('Graph recovery attempted');
+        } else {
+            console.log(`Found ${nodeIds.length} nodes, graph appears intact`);
+        }
+    } catch (error) {
+        console.error('Error during graph recovery:', error);
+    }
+}
+
+// Attach the recovery function to the global window object
+window.recoverWTG = recoverGraph;
 
 // Make available in module and global contexts
 if (typeof module !== 'undefined') {
