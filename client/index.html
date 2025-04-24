@@ -41,17 +41,129 @@
         <!-- Search results will be added here dynamically -->
     </div>
 
-    <!-- Info panel -->
-    <div id="info">
-        <p>Click: Select node</p>
-        <p>Left-click + drag: Rotate</p>
-        <p>Right-click + drag: Pan</p>
-        <p>Mouse wheel: Zoom</p>
-    </div>
-
     <!-- Title banner -->
     <div id="title-banner">
         <div id="title-main">WTG: Where in the Graph</div>
+    </div>
+
+    <!-- New top-right UI bar -->
+    <div id="top-controls">
+      <button id="info-button" class="icon-button" title="Show Instructions">
+        <i class="icon">ℹ️</i>
+      </button>
+      <button id="theme-toggle" class="icon-button" title="Toggle Theme">
+        <i class="icon">🎨</i>
+      </button>
+      <button id="settings-button" class="icon-button" title="Settings">
+        <i class="icon">⚙️</i>
+      </button>
+      <button id="top-expand-view" class="icon-button" title="Expand/Collapse View">
+        <i class="icon">↔️</i>
+      </button>
+    </div>
+
+    <!-- Info Modal -->
+    <div id="info-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>WTG: Where in the Graph</h2>
+          <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+          <h3>Navigation Instructions</h3>
+          <ul>
+            <li><strong>Click:</strong> Select node</li>
+            <li><strong>Left-click + drag:</strong> Rotate</li>
+            <li><strong>Right-click + drag:</strong> Pan</li>
+            <li><strong>Mouse wheel:</strong> Zoom</li>
+          </ul>
+          <h3>Keyboard Shortcuts</h3>
+          <ul>
+            <li><strong>Arrow Keys:</strong> Navigate between nodes</li>
+            <li><strong>F:</strong> Focus search box</li>
+            <li><strong>Esc:</strong> Clear selection</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Graph Settings</h2>
+          <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div class="settings-section">
+            <h3>Theme</h3>
+            <div class="setting-control">
+              <label for="theme-mode">Display Mode:</label>
+              <select id="theme-mode">
+                <option value="dark">Dark Mode</option>
+                <option value="light">Light Mode</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="settings-section">
+            <h3>Node Colors</h3>
+            <div class="color-controls">
+              <div class="color-control">
+                <label for="axiom-color">Axiom:</label>
+                <input type="color" id="axiom-color" value="#D32F2F">
+              </div>
+              <div class="color-control">
+                <label for="definition-color">Definition:</label>
+                <input type="color" id="definition-color" value="#1976D2">
+              </div>
+              <div class="color-control">
+                <label for="lemma-color">Lemma:</label>
+                <input type="color" id="lemma-color" value="#388E3C">
+              </div>
+              <div class="color-control">
+                <label for="theorem-color">Theorem:</label>
+                <input type="color" id="theorem-color" value="#7B1FA2">
+              </div>
+              <div class="color-control">
+                <label for="corollary-color">Corollary:</label>
+                <input type="color" id="corollary-color" value="#F57C00">
+              </div>
+            </div>
+          </div>
+          
+          <div class="settings-section">
+            <h3>Edge Colors</h3>
+            <div class="color-controls">
+              <div class="color-control">
+                <label for="depends-color">Depends On:</label>
+                <input type="color" id="depends-color" value="#42A5F5">
+              </div>
+              <div class="color-control">
+                <label for="proves-color">Proves:</label>
+                <input type="color" id="proves-color" value="#66BB6A">
+              </div>
+              <div class="color-control">
+                <label for="generalizes-color">Generalizes:</label>
+                <input type="color" id="generalizes-color" value="#FF7043">
+              </div>
+            </div>
+          </div>
+          
+          <div class="settings-section">
+            <h3>Background</h3>
+            <div class="setting-control">
+              <label for="background-color">Scene Background:</label>
+              <input type="color" id="background-color" value="#000000">
+            </div>
+          </div>
+          
+          <div class="settings-buttons">
+            <button id="apply-settings">Apply</button>
+            <button id="reset-settings">Reset to Default</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Third-party libraries -->

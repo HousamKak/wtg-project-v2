@@ -329,41 +329,246 @@
       margin-top: 15px;
   }
   
-  #info {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background-color: rgba(20, 20, 25, 0.8);
-      padding: 10px;
-      border-radius: 5px;
-      z-index: 90;
-      max-width: 250px; /* Constrained to prevent overlap */
-  }
-  
-  /* Fix overlap between a red box and expanded view */
-  #info.expandedView {
-      right: calc(30% + 20px); /* Adjust when view is expanded */
-  }
-  
-  /* Node types section under the controls */
-  .node-types {
-      position: absolute;
-      top: 250px; /* Position below controls */
-      left: 20px;
-      z-index: 90;
-      background-color: rgba(20, 20, 25, 0.8);
-      padding: 10px;
-      border-radius: 5px;
-      width: 160px;
-  }
+  /* New Top-Right UI Bar */
+#top-controls {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+  display: flex;
+  gap: 10px;
+  background-color: rgba(20, 20, 25, 0.85);
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(5px);
+}
 
-  .edge-types {
-      position: absolute;
-      top: 400px; /* Position below node types */
-      left: 20px;
-      z-index: 90;
-      background-color: rgba(20, 20, 25, 0.8);
-      padding: 10px;
-      border-radius: 5px;
-      width: 160px;
-  }
+/* Icon Button Style */
+.icon-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.icon-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.icon-button:active {
+  transform: translateY(0);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.icon-button.active {
+  background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+}
+
+.icon {
+  font-style: normal;
+}
+
+/* Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  animation: fadeIn 0.3s ease;
+}
+
+.modal.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background-color: rgba(30, 30, 35, 0.95);
+  border-radius: 8px;
+  width: 500px;
+  max-width: 90%;
+  max-height: 80vh;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  animation: slideIn 0.3s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: linear-gradient(90deg, rgba(52, 152, 219, 0.9) 0%, rgba(41, 128, 185, 0.9) 100%);
+  color: white;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.close {
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close:hover {
+  opacity: 0.7;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  color: #eee;
+}
+
+.modal-body h3 {
+  color: #3498db;
+  margin-top: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+
+.modal-body ul {
+  padding-left: 20px;
+}
+
+.modal-body li {
+  margin-bottom: 8px;
+}
+
+/* Settings Specific Styles */
+.settings-section {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.settings-section:last-child {
+  border-bottom: none;
+}
+
+.setting-control {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.setting-control select, 
+.setting-control input[type="number"] {
+  background-color: rgba(40, 40, 45, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  width: 150px;
+}
+
+.color-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.color-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-control input[type="color"] {
+  border: none;
+  border-radius: 4px;
+  background: none;
+  height: 25px;
+  width: 50px;
+  cursor: pointer;
+}
+
+.settings-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.settings-buttons button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+#apply-settings {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+}
+
+#reset-settings {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.settings-buttons button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Updated styles for existing components */
+#controls {
+  background: rgba(30, 30, 35, 0.9);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
+  padding: 15px;
+}
+
+#sidebar {
+  background-color: rgba(30, 30, 35, 0.95);
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.4);
+  border-left: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.node-types, .edge-types {
+  background-color: rgba(30, 30, 35, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  padding: 15px;
+}
+
+/* Hide original info panel as we've moved it to the modal */
+#info {
+  display: none;
+}
