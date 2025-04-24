@@ -76,25 +76,39 @@ class SelectionManager {
      * @param {Object} mouse - Mouse coordinates in normalized device coordinates
      */
     selectFromMouse(mouse) {
-        console.log('Selecting node from mouse position:', mouse);
         // Get intersections with scene objects
         const intersects = this.graphManager.getIntersectedObjects(mouse);
-
-        console.log('Intersected objects:', intersects);
+        
         // Check for hits on nodes
         for (let i = 0; i < intersects.length; i++) {
             const object = intersects[i].object;
             if (object.userData && object.userData.type === 'node') {
-                console.log('Node selected:', object.userData.id);
                 this.selectNode(object.userData.id);
                 return;
             }
         }
-
-        console.log('No node selected, clearing selection.');
-        // If no node was hit, ensure the click is not on the graph container background
-        if (intersects.length === 0 && mouse.x !== 0 && mouse.y !== 0) {
-            this.clearSelection();
+        
+        // If no node was hit, only clear selection if:
+        // 1. We have a valid mouse position (not 0,0)
+        // 2. The click isn't on UI elements - check if click is in graph container
+        if (intersects.length === 0 && 
+            (Math.abs(mouse.x) > 0.01 || Math.abs(mouse.y) > 0.01)) {
+            
+            // Get the graph container dimensions to determine if click is inside it
+            const graphContainer = document.getElementById('graph-container');
+            if (!graphContainer) return;
+            
+            const rect = graphContainer.getBoundingClientRect();
+            
+            // Convert normalized device coordinates back to screen coordinates
+            const screenX = ((mouse.x + 1) / 2) * window.innerWidth;
+            const screenY = ((1 - mouse.y) / 2) * window.innerHeight;
+            
+            // Only clear selection if click is within the graph container
+            if (screenX >= rect.left && screenX <= rect.right && 
+                screenY >= rect.top && screenY <= rect.bottom) {
+                this.clearSelection();
+            }
         }
     }
     

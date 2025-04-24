@@ -128,86 +128,169 @@
       backdrop-filter: blur(5px);
   }
   
-  /* Modern gradient button styles */
-  button {
-    display: inline-block;
-    padding: var(--btn-padding);
-    font-size: var(--btn-font-size);
-    font-weight: 600;
-    color: var(--btn-text);
-    background: linear-gradient(
-      135deg,
-      var(--btn-gradient-start),
-      var(--btn-gradient-end)
-    );
-    border: none;
-    border-radius: var(--btn-radius);
-    box-shadow:
-      0 6px 12px var(--btn-shadow),
-      0 3px 6px var(--btn-shadow);
-    cursor: pointer;
-    transition:
-      transform var(--transition-speed) ease,
-      box-shadow var(--transition-speed) ease;
+  /* Enhanced Button Styling */
+button {
+  display: inline-block;
+  padding: 0.6em 1.2em;
+  margin: 0 0 8px 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+  color: #ffffff;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 14px rgba(0, 0, 0, 0.15);
+}
+
+button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Active state for toggleable buttons */
+button.active {
+  background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Disabled state */
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #b3b3b3 0%, #808080 100%);
+  transform: none;
+  box-shadow: none;
+}
+
+/* Add a subtle ripple effect on click */
+button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
+}
+
+button:active::after {
+  animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
   }
-  
-  button:not(:disabled):hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow:
-      0 12px 24px var(--btn-shadow-strong),
-      0 6px 12px var(--btn-shadow);
+  100% {
+    transform: scale(30, 30);
+    opacity: 0;
   }
-  
-  button:not(:disabled):active {
-    transform: translateY(0) scale(0.98);
-    box-shadow:
-      inset 0 3px 6px var(--btn-shadow-strong),
-      inset 0 2px 4px var(--btn-shadow);
-  }
-  
-  button:disabled {
-    background: #bdc3c7;
-    color: #ecf0f1;
-    cursor: not-allowed;
-    box-shadow: none;
-    opacity: 0.6;
-  }
-  
-  /* Secondary (outline) style */
-  button.secondary {
-    background: transparent;
-    color: var(--btn-gradient-start);
-    border: 2px solid var(--btn-gradient-start);
-    box-shadow: 0 4px 8px var(--btn-shadow);
-  }
-  
-  button.secondary:hover {
-    background: var(--btn-gradient-start);
-    color: var(--btn-text);
-  }
-  
-  /* Search bar */
+}
+
+/* Add visual indicator for toggle buttons */
+button.toggle {
+  padding-left: 2.5em;
+  position: relative;
+}
+
+button.toggle::before {
+  content: '';
+  position: absolute;
+  left: 0.8em;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.8em;
+  height: 0.8em;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  transition: background-color 0.3s ease;
+}
+
+button.toggle.active::before {
+  background-color: #ffffff;
+  box-shadow: 0 0 8px #ffffff;
+}
+
+  /* Search bar positioning fixes */
   #search-bar {
       position: absolute;
       top: 20px;
-      left: 220px;
+      left: 230px; /* Increased from 220px to add more space from controls */
       z-index: 10;
       width: 220px;
   }
-  
+
   #search-input {
       width: 100%;
       padding: 10px 15px;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       background-color: rgba(20, 20, 25, 0.8);
       color: white;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
       backdrop-filter: blur(5px);
+      transition: all 0.3s ease;
   }
-  
+
+  #search-input:focus {
+      box-shadow: 0 6px 12px rgba(52, 152, 219, 0.3);
+      outline: none;
+      background-color: rgba(25, 25, 30, 0.9);
+  }
+
   #search-input::placeholder {
       color: rgba(255, 255, 255, 0.6);
+  }
+
+  /* Search results dropdown styling */
+  #search-results-dropdown {
+      position: absolute;
+      top: 100%; /* Position directly below search input */
+      left: 0;
+      right: 0;
+      width: 100%; /* Match parent width */
+      max-height: 300px;
+      overflow-y: auto;
+      background-color: rgba(25, 25, 30, 0.95);
+      color: white;
+      border-radius: 0 0 6px 6px;
+      margin-top: 2px; /* Small gap between input and dropdown */
+      z-index: 100;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+  }
+
+  /* Fixed search results item styling */
+  #search-results-dropdown div {
+      padding: 10px 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+  }
+
+  #search-results-dropdown div:last-child {
+      border-bottom: none;
+      border-radius: 0 0 6px 6px;
+  }
+
+  #search-results-dropdown div:hover {
+      background-color: rgba(52, 152, 219, 0.3);
   }
   
   /* Legend */
@@ -318,4 +401,3 @@
           font-size: 0.8em;
       }
   }
-  

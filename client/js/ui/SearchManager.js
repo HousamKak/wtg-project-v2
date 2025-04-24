@@ -152,24 +152,13 @@ class SearchManager {
         // Create dropdown
         const dropdown = document.createElement('div');
         dropdown.id = 'search-results-dropdown';
-        dropdown.style.position = 'absolute';
-        dropdown.style.top = `${this.searchInput.offsetTop + this.searchInput.offsetHeight}px`;
-        dropdown.style.left = `${this.searchInput.offsetLeft}px`;
-        dropdown.style.width = `${this.searchInput.offsetWidth}px`;
-        dropdown.style.maxHeight = '300px';
-        dropdown.style.overflowY = 'auto';
-        dropdown.style.backgroundColor = 'rgba(20, 20, 25, 0.95)';
-        dropdown.style.color = 'white';
-        dropdown.style.borderRadius = '0 0 5px 5px';
-        dropdown.style.zIndex = '100';
-        dropdown.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+        
+        // Position dropdown relative to the search input
+        // No need to set explicit position values as CSS will handle positioning
         
         // Add results to dropdown
         results.forEach(node => {
             const item = document.createElement('div');
-            item.style.padding = '10px 15px';
-            item.style.borderBottom = '1px solid rgba(255, 255, 255, 0.1)';
-            item.style.cursor = 'pointer';
             
             // Highlight node type with color
             const typeSpan = document.createElement('span');
@@ -203,15 +192,6 @@ class SearchManager {
             item.appendChild(typeSpan);
             item.appendChild(document.createTextNode(node.label));
             
-            // Add hover effect
-            item.addEventListener('mouseenter', () => {
-                item.style.backgroundColor = 'rgba(52, 152, 219, 0.3)';
-            });
-            
-            item.addEventListener('mouseleave', () => {
-                item.style.backgroundColor = 'transparent';
-            });
-            
             // Add click handler
             item.addEventListener('click', () => {
                 this.selectionManager.selectNode(node.id);
@@ -222,8 +202,14 @@ class SearchManager {
             dropdown.appendChild(item);
         });
         
-        // Add dropdown to page
-        document.body.appendChild(dropdown);
+        // Append dropdown to search bar (instead of body)
+        const searchBar = document.getElementById('search-bar');
+        if (searchBar) {
+            searchBar.appendChild(dropdown);
+        } else {
+            // Fallback to body if search bar container not found
+            document.body.appendChild(dropdown);
+        }
         
         // Add event listener to close dropdown when clicking outside
         document.addEventListener('click', this.handleOutsideClick.bind(this));
