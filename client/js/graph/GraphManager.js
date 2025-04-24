@@ -290,26 +290,45 @@ class GraphManager {
     startAnimation(enableRotation = false) {
         const rotationSpeed = 0.005;
         let isRotating = enableRotation;
-        
+
+        // Track frame errors to prevent crashing
+        let consecutiveErrors = 0;
+
         // Function to toggle rotation
         this.toggleRotation = () => {
             isRotating = !isRotating;
             return isRotating;
         };
-        
-        // Main animation loop
+
+        // Main animation loop with error boundary
         const animate = () => {
-            requestAnimationFrame(animate);
-            
-            // Rotate camera if enabled
-            if (isRotating && !this.is2DMode && !this.is3DTransitioning) {
-                this.rotateCamera(rotationSpeed);
+            try {
+                // Rotate camera if enabled
+                if (isRotating && !this.is2DMode && !this.is3DTransitioning) {
+                    this.rotateCamera(rotationSpeed);
+                }
+
+                // Render the scene
+                this.renderer.render(this.scene, this.camera);
+
+                // Reset error counter on successful frame
+                consecutiveErrors = 0;
+            } catch (error) {
+                consecutiveErrors++;
+                console.error('Render error:', error);
+
+                // If too many consecutive errors, slow down or pause animation
+                if (consecutiveErrors > 5) {
+                    console.warn('Multiple render errors detected, slowing animation');
+                    setTimeout(() => requestAnimationFrame(animate), 1000);
+                    return;
+                }
             }
-            
-            // Render the scene
-            this.renderer.render(this.scene, this.camera);
+
+            // Continue animation
+            requestAnimationFrame(animate);
         };
-        
+
         // Start animation
         animate();
     }

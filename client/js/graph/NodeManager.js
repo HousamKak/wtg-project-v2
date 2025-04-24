@@ -68,31 +68,48 @@ class NodeManager {
      * @param {Object} nodeData - Node data object
      */
     createNode(nodeData) {
+        // Initialize material cache if not already done
+        if (!this.materialCache) this.materialCache = {};
+
+        // Check if materials for this node type are already cached
+        if (!this.materialCache[nodeData.type]) {
+            this.materialCache[nodeData.type] = {
+                default: new THREE.MeshPhongMaterial(
+                    window.themeManager.createNodeMaterial(nodeData.type)
+                ),
+                selected: new THREE.MeshPhongMaterial(
+                    window.themeManager.createNodeMaterial(nodeData.type, 'selected')
+                ),
+                related: new THREE.MeshPhongMaterial(
+                    window.themeManager.createNodeMaterial(nodeData.type, 'related')
+                )
+            };
+        }
+
         // Get node position
         const position = this.nodePositions[nodeData.id];
         if (!position) return;
-        
-        // Create node geometry and material
+
+        // Create node geometry and use cached material
         const geometry = new THREE.SphereGeometry(nodeData.size, 32, 32);
-        const materialProps = window.themeManager.createNodeMaterial(nodeData.type);
-        const material = new THREE.MeshPhongMaterial(materialProps);
-        
+        const material = this.materialCache[nodeData.type].default.clone();
+
         // Create mesh and position it
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.copy(position);
-        mesh.userData = { 
-            id: nodeData.id, 
+        mesh.userData = {
+            id: nodeData.id,
             type: 'node',
             label: nodeData.label,
             nodeType: nodeData.type,
             level: nodeData.level,
             connections: nodeData.connections
         };
-        
+
         // Add to scene and store reference
         this.graphManager.addToScene(mesh);
         this.nodeObjects[nodeData.id] = mesh;
-        
+
         // Create text label for the node
         this.createLabel(nodeData, position);
     }

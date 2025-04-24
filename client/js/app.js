@@ -19,6 +19,7 @@
     let uiManager;
     let sidebarManager;
     let searchManager;
+    let layoutManager;
     
     /**
      * Initialize the application
@@ -178,6 +179,7 @@
         uiManager,
         sidebarManager,
         searchManager,
+        layoutManager,
         
         // Helper methods
         focusOnNode: function(nodeId) {
@@ -233,6 +235,13 @@
                 nodeManager.resetPositions();
                 edgeManager.updateEdgePositions();
                 return true;
+            }
+            return false;
+        },
+        
+        switchLayout: function(layoutType) {
+            if (layoutManager) {
+                return layoutManager.switchLayout(layoutType);
             }
             return false;
         }

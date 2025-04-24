@@ -161,19 +161,149 @@ class EventManager {
     }
     
     /**
-     * Add key press listener
+     * Add key press listener with improved keyboard navigation
      * @param {Function} callback - Key press callback function
      */
     addKeyPressListener(callback) {
-        window.addEventListener('keydown', callback);
+        const keyHandler = (event) => {
+            // Call original callback
+            callback(event);
+
+            // Add additional keyboard shortcuts
+            switch (event.key) {
+                case 'f':
+                case 'F':
+                    // Focus search box
+                    const searchInput = document.getElementById('search-input');
+                    if (searchInput) {
+                        searchInput.focus();
+                        event.preventDefault();
+                    }
+                    break;
+
+                case 'h':
+                case 'H':
+                    // Show help dialog
+                    this.showHelpDialog();
+                    event.preventDefault();
+                    break;
+
+                case 't':
+                case 'T':
+                    // Toggle theme (could be implemented)
+                    this.toggleTheme();
+                    event.preventDefault();
+                    break;
+
+                // Add more shortcuts as needed
+            }
+        };
+
+        window.addEventListener('keydown', keyHandler);
+        return keyHandler; // Return handler for removal
     }
-    
+
     /**
-     * Remove key press listener
-     * @param {Function} callback - Key press callback function
+     * Show help dialog with keyboard shortcuts
      */
-    removeKeyPressListener(callback) {
-        window.removeEventListener('keydown', callback);
+    showHelpDialog() {
+        // Create help dialog if it doesn't exist
+        let helpDialog = document.getElementById('keyboard-help');
+
+        if (!helpDialog) {
+            helpDialog = document.createElement('div');
+            helpDialog.id = 'keyboard-help';
+            helpDialog.className = 'help-dialog';
+            helpDialog.innerHTML = `
+                <div class="help-content">
+                    <h2>Keyboard Shortcuts</h2>
+                    <table>
+                        <tr><td><kbd>Arrow Keys</kbd></td><td>Navigate between nodes</td></tr>
+                        <tr><td><kbd>Esc</kbd></td><td>Clear selection</td></tr>
+                        <tr><td><kbd>F</kbd></td><td>Focus search box</td></tr>
+                        <tr><td><kbd>H</kbd></td><td>Show/hide this help</td></tr>
+                        <tr><td><kbd>T</kbd></td><td>Toggle theme</td></tr>
+                    </table>
+                    <button id="close-help">Close</button>
+                </div>
+            `;
+
+            document.body.appendChild(helpDialog);
+
+            // Add close button handler
+            document.getElementById('close-help').addEventListener('click', () => {
+                helpDialog.style.display = 'none';
+            });
+
+            // Add styles if not already present
+            if (!document.getElementById('help-dialog-styles')) {
+                const style = document.createElement('style');
+                style.id = 'help-dialog-styles';
+                style.textContent = `
+                    .help-dialog {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0, 0, 0, 0.7);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 1000;
+                    }
+                    .help-content {
+                        background-color: rgba(30, 30, 35, 0.95);
+                        border-radius: 8px;
+                        padding: 20px;
+                        max-width: 500px;
+                        color: white;
+                        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+                    }
+                    .help-content h2 {
+                        margin-top: 0;
+                        color: #3498db;
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+                        padding-bottom: 10px;
+                    }
+                    .help-content table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 15px 0;
+                    }
+                    .help-content td {
+                        padding: 8px;
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    }
+                    .help-content td:first-child {
+                        width: 120px;
+                    }
+                    .help-content kbd {
+                        background-color: rgba(255, 255, 255, 0.1);
+                        padding: 2px 6px;
+                        border-radius: 3px;
+                        border: 1px solid rgba(255, 255, 255, 0.3);
+                    }
+                    #close-help {
+                        padding: 8px 15px;
+                        background-color: #3498db;
+                        border: none;
+                        border-radius: 4px;
+                        color: white;
+                        cursor: pointer;
+                        float: right;
+                        margin-top: 10px;
+                    }
+                    #close-help:hover {
+                        background-color: #2980b9;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+
+        // Toggle dialog visibility
+        helpDialog.style.display = helpDialog.style.display === 'none' ? 'flex' : 'none';
     }
 }
 

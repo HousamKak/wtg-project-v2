@@ -57,6 +57,54 @@ class ThemeManager {
         this.selectedEdgeMaterialProps = {
             opacity: 1.0
         };
+
+        // Material caches
+        this.nodeMaterials = {}; // Cache for node materials
+        this.edgeMaterials = {}; // Cache for edge materials
+    }
+
+    /**
+     * Get or create a node material with caching
+     * @param {string} type - The node type
+     * @param {string} state - The node state
+     * @returns {THREE.MeshPhongMaterial} - Cached or new material
+     */
+    getNodeMaterial(type, state = 'default') {
+        const key = `${type}-${state}`;
+        if (!this.nodeMaterials[key]) {
+            const materialProps = this.createNodeMaterial(type, state);
+            this.nodeMaterials[key] = new THREE.MeshPhongMaterial(materialProps);
+        }
+        return this.nodeMaterials[key];
+    }
+
+    /**
+     * Get or create an edge material with caching
+     * @param {string} type - The edge type
+     * @param {string} state - The edge state
+     * @returns {THREE.LineBasicMaterial} - Cached or new material
+     */
+    getEdgeMaterial(type, state = 'default') {
+        const key = `${type}-${state}`;
+        if (!this.edgeMaterials[key]) {
+            const materialProps = this.createEdgeMaterial(type, state);
+            this.edgeMaterials[key] = new THREE.LineBasicMaterial(materialProps);
+        }
+        return this.edgeMaterials[key];
+    }
+
+    /**
+     * Dispose of all cached materials
+     */
+    disposeMaterials() {
+        for (const key in this.nodeMaterials) {
+            this.nodeMaterials[key].dispose();
+        }
+        for (const key in this.edgeMaterials) {
+            this.edgeMaterials[key].dispose();
+        }
+        this.nodeMaterials = {};
+        this.edgeMaterials = {};
     }
     
     /**

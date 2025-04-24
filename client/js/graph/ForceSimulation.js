@@ -66,15 +66,28 @@ class ForceSimulation {
         if (!this.isSimulating || !this.useForces) {
             return;
         }
-        
+
         // Get current edge data
         const edges = this.edgeManager.getEdgeData();
         
-        // Update node positions based on forces
-        this.nodeManager.updatePositionsWithForces(edges, this.is2DMode);
+        // Track total movement to detect stability
+        let totalMovement = this.nodeManager.updatePositionsWithForces(edges, this.is2DMode);
         
         // Update edge positions to match nodes
         this.edgeManager.updateEdgePositions();
+        
+        // Adaptive simulation - slow down when stable
+        if (!this.stabilityCounter) this.stabilityCounter = 0;
+        if (totalMovement < 0.5) {
+            this.stabilityCounter++;
+            if (this.stabilityCounter > 30) {
+                // Reduce simulation frequency when stable
+                setTimeout(() => this.simulateStep(), 500);
+                return;
+            }
+        } else {
+            this.stabilityCounter = 0;
+        }
         
         // Continue simulation
         requestAnimationFrame(() => this.simulateStep());

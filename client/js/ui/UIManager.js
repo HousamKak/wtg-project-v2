@@ -247,6 +247,55 @@ class UIManager {
             statusElement.style.opacity = '0';
         }
     }
+    
+    /**
+     * Initialize layout controls
+     * @param {Object} layoutManager - The layout manager instance
+     */
+    initLayoutControls(layoutManager) {
+        if (!layoutManager) return;
+        
+        // Create layout selector dropdown
+        const controls = document.getElementById('controls');
+        if (!controls) return;
+        
+        const layoutSection = document.createElement('div');
+        layoutSection.style.marginTop = '15px';
+        layoutSection.style.borderTop = '1px solid rgba(255,255,255,0.2)';
+        layoutSection.style.paddingTop = '15px';
+        
+        layoutSection.innerHTML = `
+            <label for="layout-selector" style="display: block; margin-bottom: 5px;">Layout</label>
+            <select id="layout-selector" style="width: 100%; margin-bottom: 8px; background-color: rgba(52, 152, 219, 0.2); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 4px;">
+                <option value="force">Force-Directed</option>
+                <option value="hierarchical">Hierarchical</option>
+                <option value="radial">Radial</option>
+                <option value="concentric">Concentric</option>
+                <option value="clustered">Clustered</option>
+            </select>
+        `;
+        
+        controls.appendChild(layoutSection);
+        
+        // Add event listener
+        const selector = document.getElementById('layout-selector');
+        if (selector) {
+            selector.addEventListener('change', () => {
+                const layout = selector.value;
+                layoutManager.switchLayout(layout);
+                
+                // Toggle forces off if not using force layout
+                if (layout !== 'force' && this.forceSimulation) {
+                    this.forceSimulation.useForces = false;
+                    const forcesButton = document.getElementById('toggle-forces');
+                    if (forcesButton) {
+                        forcesButton.classList.remove('active');
+                        forcesButton.textContent = 'Enable Forces';
+                    }
+                }
+            });
+        }
+    }
 }
 
 // Make available in module and global contexts

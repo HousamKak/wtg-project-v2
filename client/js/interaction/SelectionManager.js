@@ -42,6 +42,11 @@ class SelectionManager {
         if (this.sidebarManager) {
             this.sidebarManager.showNodeDetails(nodeId);
         }
+        
+        // Notify accessibility manager if available
+        if (window.accessibilityManager) {
+            window.accessibilityManager.onNodeSelected(nodeId);
+        }
     }
     
     /**
