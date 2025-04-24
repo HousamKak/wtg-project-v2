@@ -13,40 +13,46 @@
   
   /* Main layout */
   body {
-      font-family: 'Arial', sans-serif;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      height: 100vh;
-      overflow: hidden;
-      background-color: #000;
-      color: #fff;
-  }
-  
-  #graph-container {
-      width: 70%;
-      height: 100%;
-      position: relative;
-  }
-  
-  /* Sidebar styles */
-  #sidebar {
-      width: 30%;
-      height: 100%;
-      background-color: rgba(20, 20, 25, 0.95);
-      border-left: 1px solid #333;
-      overflow-y: auto;
-      padding: 20px;
-      box-sizing: border-box;
-      transition: transform 0.3s ease;
-      color: #eee;
-  }
-  
-  #sidebar.hidden {
-      transform: translateX(100%);
-  }
-  
-  #sidebar h2 {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  color: #fff;
+}
+
+/* Make graph container take the entire viewport */
+#graph-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Ensure sidebar is on top of the graph */
+#sidebar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 30%;
+  height: 100%;
+  background-color: rgba(20, 20, 25, 0.95);
+  border-left: 1px solid #333;
+  overflow-y: auto;
+  padding: 20px;
+  box-sizing: border-box;
+  transition: transform 0.3s ease;
+  z-index: 90;
+}
+
+#sidebar.hidden {
+  transform: translateX(100%);
+}
+
+#sidebar h2 {
       margin-top: 0;
       color: #fff;
       border-bottom: 2px solid #3498db;
@@ -113,126 +119,120 @@
       color: #3498db;
   }
   
-  /* Controls panel */
-  #controls {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      z-index: 10;
-      background-color: rgba(20, 20, 25, 0.8);
-      padding: 15px;
-      border-radius: 8px;
-      color: #fff;
-      width: 180px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      backdrop-filter: blur(5px);
-  }
-  
-  /* Enhanced Button Styling */
-button {
-  display: inline-block;
-  padding: 0.6em 1.2em;
-  margin: 0 0 8px 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-  text-align: center;
+  /* Compact and Indicative Button Styles */
+#controls {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 100;
+  background-color: rgba(20, 20, 25, 0.85);
+  padding: 12px;
+  border-radius: 8px;
+  color: #fff;
+  width: 160px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(5px);
+}
+
+#controls h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 6px;
+}
+
+#controls button {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
   color: #ffffff;
   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   border: none;
-  border-radius: 6px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   position: relative;
-  width: 100%;
   overflow: hidden;
 }
 
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 7px 14px rgba(0, 0, 0, 0.15);
+#controls button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
-button:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+#controls button:active {
+  transform: translateY(0);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* Active state for toggleable buttons */
-button.active {
-  background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+/* Active state for toggle buttons */
+#controls button.active {
+  background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* Disabled state */
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  background: linear-gradient(135deg, #b3b3b3 0%, #808080 100%);
-  transform: none;
-  box-shadow: none;
-}
-
-/* Add a subtle ripple effect on click */
-button::after {
+/* Enhanced visual indicator for active/inactive toggle buttons */
+#controls button[id^="toggle"]::before {
   content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 5px;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.5);
-  opacity: 0;
-  border-radius: 100%;
-  transform: scale(1, 1) translate(-50%);
-  transform-origin: 50% 50%;
-}
-
-button:active::after {
-  animation: ripple 0.6s ease-out;
-}
-
-@keyframes ripple {
-  0% {
-    transform: scale(0, 0);
-    opacity: 0.5;
-  }
-  100% {
-    transform: scale(30, 30);
-    opacity: 0;
-  }
-}
-
-/* Add visual indicator for toggle buttons */
-button.toggle {
-  padding-left: 2.5em;
-  position: relative;
-}
-
-button.toggle::before {
-  content: '';
-  position: absolute;
-  left: 0.8em;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0.8em;
-  height: 0.8em;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
+  margin-right: 6px;
   background-color: rgba(255, 255, 255, 0.5);
-  transition: background-color 0.3s ease;
+  transition: all 0.2s ease;
 }
 
-button.toggle.active::before {
+#controls button[id^="toggle"].active::before {
   background-color: #ffffff;
-  box-shadow: 0 0 8px #ffffff;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+}
+
+/* Specific button colors for different actions */
+#controls button#reset-view, 
+#controls button#reset-positions {
+  background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+}
+
+#controls button#expand-view {
+  background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+}
+
+/* Node spacing control */
+#controls .spacing-control {
+  margin-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 10px;
+}
+
+#controls .spacing-control label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+
+#controls .spacing-control input {
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+#controls .spacing-value {
+  font-size: 11px;
+  text-align: right;
 }
 
   /* Search bar positioning fixes */
   #search-bar {
       position: absolute;
       top: 20px;
-      left: 230px; /* Increased from 220px to add more space from controls */
-      z-index: 10;
+      left: 195px; /* Adjusted to not overlap with controls */
+      z-index: 100;
       width: 220px;
   }
 
@@ -261,19 +261,15 @@ button.toggle.active::before {
   /* Search results dropdown styling */
   #search-results-dropdown {
       position: absolute;
-      top: 100%; /* Position directly below search input */
-      left: 0;
-      right: 0;
-      width: 100%; /* Match parent width */
+      z-index: 110; /* Above other UI elements */
       max-height: 300px;
       overflow-y: auto;
-      background-color: rgba(25, 25, 30, 0.95);
-      color: white;
-      border-radius: 0 0 6px 6px;
-      margin-top: 2px; /* Small gap between input and dropdown */
-      z-index: 100;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-      backdrop-filter: blur(10px);
+      background-color: rgba(20, 20, 25, 0.95);
+      border-radius: 0 0 5px 5px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+      width: 100%;
+      top: 100%;
+      left: 0;
   }
 
   /* Fixed search results item styling */
@@ -322,82 +318,51 @@ button.toggle.active::before {
       position: absolute;
       top: 20px;
       right: 20px;
-      z-index: 10;
       background-color: rgba(20, 20, 25, 0.8);
       padding: 10px;
       border-radius: 5px;
-      color: #fff;
-      max-width: 300px;
-      text-align: right;
+      z-index: 90;
+      max-width: 250px; /* Constrained to prevent overlap */
   }
   
-  /* Title banner */
-  #title-banner {
+  /* Fix overlap between a red box and expanded view */
+  #info.expandedView {
+      right: calc(30% + 20px); /* Adjust when view is expanded */
+  }
+  
+  /* Node types section under the controls */
+  .node-types {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 32px;
-      font-weight: bold;
-      text-align: center;
-      color: rgba(255, 255, 255, 0.8);
-      text-shadow: 0 0 10px rgba(52, 152, 219, 0.8);
-      z-index: 5;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 2s ease;
+      top: 250px; /* Position below controls */
+      left: 20px;
+      z-index: 90;
+      background-color: rgba(20, 20, 25, 0.8);
+      padding: 10px;
+      border-radius: 5px;
+      width: 160px;
   }
-  
-  #title-banner.visible {
-      opacity: 1;
+
+  .edge-types {
+      position: absolute;
+      top: 400px; /* Position below node types */
+      left: 20px;
+      z-index: 90;
+      background-color: rgba(20, 20, 25, 0.8);
+      padding: 10px;
+      border-radius: 5px;
+      width: 160px;
   }
-  
-  .edge-legend {
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(255, 255, 255, 0.3);
-  }
-  
-  .edge-legend-item {
-      margin: 5px 0;
-      font-size: 12px;
-  }
-  
-  .edge-color {
-      display: inline-block;
-      width: 30px;
-      height: 2px;
-      margin-right: 10px;
-      vertical-align: middle;
-  }
-  
-  @media (max-width: 768px) {
-      #graph-container {
-          width: 100%;
-          height: 60vh;
-      }
-  
-      #sidebar {
-          width: 100%;
-          height: 40vh;
-          border-left: none;
-          border-top: 1px solid #333;
-      }
-  
-      #controls {
-          width: 140px;
-          padding: 10px;
-          font-size: 0.9em;
-      }
-  
-      /* Ensure buttons still fit */
-      button {
-          padding: 0.5em 1em;
-          font-size: 0.9em;
-          margin-bottom: 6px;
-      }
-  
-      .legend {
-          font-size: 0.8em;
-      }
+
+  /* Search result dropdown */
+  #search-results-dropdown {
+      position: absolute;
+      z-index: 110; /* Above other UI elements */
+      max-height: 300px;
+      overflow-y: auto;
+      background-color: rgba(20, 20, 25, 0.95);
+      border-radius: 0 0 5px 5px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+      width: 100%;
+      top: 100%;
+      left: 0;
   }

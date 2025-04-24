@@ -247,15 +247,112 @@
         }
     };
     
+    // Layout and UI fixes for the WTG application
+function initExpandViewButton() {
+    const button = document.getElementById('expand-view');
+    const infoPanel = document.getElementById('info');
+
+    if (!button) return;
+
+    button.addEventListener('click', () => {
+        const graphContainer = document.getElementById('graph-container');
+        const sidebar = document.getElementById('sidebar');
+
+        if (!graphContainer || !sidebar) return;
+
+        const isExpanded = sidebar.classList.contains('hidden');
+
+        if (isExpanded) {
+            sidebar.classList.remove('hidden');
+            button.textContent = 'Expand View';
+            button.classList.remove('active');
+
+            if (infoPanel) {
+                infoPanel.classList.remove('expandedView');
+            }
+        } else {
+            sidebar.classList.add('hidden');
+            button.textContent = 'Show Sidebar';
+            button.classList.add('active');
+
+            if (infoPanel) {
+                infoPanel.classList.add('expandedView');
+            }
+        }
+
+        window.dispatchEvent(new Event('resize'));
+    });
+}
+
+function reorganizeUIElements() {
+    const legendElement = document.querySelector('.legend');
+    if (!legendElement) return;
+
+    const nodeTypesHeading = legendElement.querySelector('h3:first-of-type');
+    const edgeTypesHeading = legendElement.querySelector('.edge-legend h3');
+
+    if (!nodeTypesHeading || !edgeTypesHeading) return;
+
+    const nodeTypesContainer = document.createElement('div');
+    nodeTypesContainer.className = 'node-types';
+
+    let currentElement = nodeTypesHeading;
+    const nodesToMove = [];
+
+    while (currentElement && !currentElement.classList.contains('edge-legend')) {
+        nodesToMove.push(currentElement);
+        currentElement = currentElement.nextElementSibling;
+    }
+
+    nodesToMove.forEach(node => {
+        nodeTypesContainer.appendChild(node.cloneNode(true));
+    });
+
+    const edgeTypesContainer = document.createElement('div');
+    edgeTypesContainer.className = 'edge-types';
+
+    const edgeLegend = legendElement.querySelector('.edge-legend');
+    if (edgeLegend) {
+        edgeTypesContainer.innerHTML = edgeLegend.innerHTML;
+    }
+
+    legendElement.remove();
+    document.body.appendChild(nodeTypesContainer);
+    document.body.appendChild(edgeTypesContainer);
+}
+
+function setupButtonStates() {
+    const toggleButtons = document.querySelectorAll('#controls [id^="toggle"]');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            this.classList.toggle('active');
+        });
+    });
+
+    const rotationButton = document.getElementById('toggle-rotation');
+    const forcesButton = document.getElementById('toggle-forces');
+
+    if (rotationButton) {
+        rotationButton.classList.remove('active');
+        rotationButton.textContent = 'Enable Rotation';
+    }
+
+    if (forcesButton) {
+        forcesButton.classList.add('active');
+        forcesButton.textContent = 'Disable Forces';
+    }
+}
+
+function initLayoutFixes() {
+    initExpandViewButton();
+    reorganizeUIElements();
+    setupButtonStates();
+    console.log('Layout fixes initialized');
+}
+
+document.addEventListener('DOMContentLoaded', initLayoutFixes);
+    
     // Updated node spacing initialization
     const nodeSpacingInput = document.getElementById('node-spacing');
     nodeSpacingInput.value = 100;
-    
-    // Added event listeners for button color toggle
-    const toggleButtons = document.querySelectorAll('#controls button');
-    toggleButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            button.classList.toggle('active');
-        });
-    });
 })();
