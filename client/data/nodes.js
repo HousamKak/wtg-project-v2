@@ -60,7 +60,5 @@ const nodes = [
     { id: 'riesz_representation', label: 'Riesz Representation', type: 'Theorem', description: 'A continuous linear functional on a Hilbert space is represented by inner product with a unique vector', tags: ['functional analysis'], level: 7, size: 9, connections: 3 }
 ];
 
-// Make nodes available as a module
-if (typeof module !== 'undefined') {
-    module.exports = nodes;
-}
+// Make nodes globally accessible
+window.nodes = nodes;

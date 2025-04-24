@@ -70,7 +70,5 @@ const edges = [
     { source: 'uniform_boundedness', target: 'riesz_representation', type: 'depends_on' }
 ];
 
-// Make edges available as a module
-if (typeof module !== 'undefined') {
-    module.exports = edges;
-}
+// Make edges globally accessible
+window.edges = edges;
