@@ -246,4 +246,16 @@
             return false;
         }
     };
+    
+    // Updated node spacing initialization
+    const nodeSpacingInput = document.getElementById('node-spacing');
+    nodeSpacingInput.value = 100;
+    
+    // Added event listeners for button color toggle
+    const toggleButtons = document.querySelectorAll('#controls button');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            button.classList.toggle('active');
+        });
+    });
 })();

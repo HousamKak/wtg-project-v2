@@ -119,17 +119,21 @@ class EventManager {
      * @param {Event} event - Mouse event
      */
     handleClick(event) {
+        console.log('Click event detected:', event);
         // Only process as a click if we didn't drag much
         if (Math.abs(event.clientX - this.previousMousePosition.x) > 5 || 
             Math.abs(event.clientY - this.previousMousePosition.y) > 5) {
+            console.log('Click ignored due to drag threshold.');
             return;
         }
-        
+
+        console.log('Processing click event.');
         // Get mouse position in normalized device coordinates
         const rect = this.graphManager.renderer.domElement.getBoundingClientRect();
         this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-        
+
+        console.log('Mouse position (normalized):', this.mouse);
         // Perform selection
         this.selectionManager.selectFromMouse(this.mouse);
     }

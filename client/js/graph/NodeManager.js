@@ -12,7 +12,7 @@ class NodeManager {
         this.labelObjects = {}; // Maps node IDs to label objects
         
         // Minimum distance between nodes for force simulation
-        this.minNodeDistance = 40;
+        this.minNodeDistance = 100;
     }
     
     /**
@@ -292,14 +292,16 @@ class NodeManager {
      * Reset nodes to their original calculated positions
      */
     resetPositions() {
+        console.log('Resetting node positions.');
         for (const id in this.nodePositions) {
             const originalPos = this.nodePositions[id];
             const node = this.nodeObjects[id];
-            
+
             if (originalPos && node) {
+                console.log(`Resetting position for node ${id} to`, originalPos);
                 // Set node position
                 node.position.copy(originalPos);
-                
+
                 // Update label position
                 if (this.labelObjects[id]) {
                     const label = this.labelObjects[id];

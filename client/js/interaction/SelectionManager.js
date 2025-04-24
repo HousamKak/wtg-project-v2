@@ -76,20 +76,24 @@ class SelectionManager {
      * @param {Object} mouse - Mouse coordinates in normalized device coordinates
      */
     selectFromMouse(mouse) {
+        console.log('Selecting node from mouse position:', mouse);
         // Get intersections with scene objects
         const intersects = this.graphManager.getIntersectedObjects(mouse);
-        
+
+        console.log('Intersected objects:', intersects);
         // Check for hits on nodes
         for (let i = 0; i < intersects.length; i++) {
             const object = intersects[i].object;
             if (object.userData && object.userData.type === 'node') {
+                console.log('Node selected:', object.userData.id);
                 this.selectNode(object.userData.id);
                 return;
             }
         }
-        
-        // If no node was hit, check if we should clear selection
-        if (intersects.length === 0) {
+
+        console.log('No node selected, clearing selection.');
+        // If no node was hit, ensure the click is not on the graph container background
+        if (intersects.length === 0 && mouse.x !== 0 && mouse.y !== 0) {
             this.clearSelection();
         }
     }
