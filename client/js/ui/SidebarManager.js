@@ -18,6 +18,23 @@ class SidebarManager {
         
         // Node data
         this.nodesData = window.nodes || [];
+        
+        // Initialize LaTeX renderer
+        this.initLaTeXRenderer();
+    }
+    
+    /**
+     * Initialize LaTeX renderer
+     */
+    initLaTeXRenderer() {
+        if (window.latexRenderer) {
+            // Try to initialize the LaTeX renderer
+            window.latexRenderer.initialize().catch(error => {
+                console.error('Failed to initialize LaTeX renderer:', error);
+            });
+        } else {
+            console.warn('LaTeX renderer not available');
+        }
     }
     
     /**
@@ -51,6 +68,9 @@ class SidebarManager {
         // Update content and show sidebar
         this.contentElement.innerHTML = content;
         this.sidebar.classList.remove('hidden');
+        
+        // Process LaTeX in the sidebar content
+        this.renderLaTeX();
     }
     
     /**
@@ -73,7 +93,8 @@ class SidebarManager {
             </div>
             ${theorem.statement_latex ? `
                 <div class="latex-statement">
-                    <p>LaTeX: <code>${theorem.statement_latex}</code></p>
+                    <p>Mathematical Form:</p>
+                    <div class="latex-formula">$$${theorem.statement_latex}$$</div>
                 </div>
             ` : ''}
             <h3>Explanation</h3>
@@ -100,6 +121,21 @@ class SidebarManager {
             ` : ''}
             ${this.buildRelationshipsSection(nodeId)}
         `;
+    }
+    
+    /**
+     * Render LaTeX formulas in the sidebar
+     */
+    renderLaTeX() {
+        if (window.latexRenderer) {
+            // Find all LaTeX containers in the sidebar
+            const latexContainers = this.contentElement.querySelectorAll('.latex-formula');
+            
+            // Process each container
+            latexContainers.forEach(container => {
+                window.latexRenderer.processElement(container);
+            });
+        }
     }
     
     /**
