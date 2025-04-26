@@ -18,31 +18,30 @@ class UIManager {
      * Initialize UI controls and their event listeners
      */
     initUIControls() {
+        console.log("Reinitializing UI controls with proper implementations");
+
         // Toggle dimension button
         this.initToggleDimensionButton();
-        
-        // Toggle rotation button
+
+        // Toggle rotation button (with fixed implementation)
         this.initToggleRotationButton();
-        
-        // Toggle forces button
+
+        // Toggle forces button (with fixed implementation)
         this.initToggleForcesButton();
-        
-        // Reset view button
+
+        // Reset view button (with fixed implementation)
         this.initResetViewButton();
-        
-        // Reset positions button
+
+        // Reset positions button (with fixed implementation)
         this.initResetPositionsButton();
-        
+
         // Expand view button
         this.initExpandViewButton();
-        
+
         // Node spacing slider
         this.initNodeSpacingSlider();
-        
-        // Show title banner temporarily
-        this.showTitleBanner();
     }
-    
+
     /**
      * Initialize toggle dimension button
      */
@@ -60,30 +59,29 @@ class UIManager {
             }
         });
     }
-    
+
     /**
      * Initialize toggle rotation button
      */
     initToggleRotationButton() {
         const button = document.getElementById('toggle-rotation');
         if (!button) return;
-        
-        // Initialize with dataset for state tracking
-        button.dataset.active = 'false';
-        
+
+        // Initialize button state based on current camera state
+        const isRotating = this.cameraController.autoRotate;
+        button.dataset.active = isRotating.toString();
+        button.textContent = isRotating ? 'Disable Rotation' : 'Enable Rotation';
+        button.classList.toggle('active', isRotating);
+
+        // Attach event listener
         button.addEventListener('click', () => {
-            // Toggle rotation state
-            const currentState = button.dataset.active === 'true';
-            const newState = !currentState;
-            
+            // Use the controller's toggle method to change state
+            const newState = this.cameraController.toggleAutoRotation();
+
+            // Update button appearance
             button.dataset.active = newState.toString();
             button.textContent = newState ? 'Disable Rotation' : 'Enable Rotation';
             button.classList.toggle('active', newState);
-            
-            // Update camera controller
-            if (this.cameraController) {
-                this.cameraController.setAutoRotation(newState);
-            }
         });
     }
     
@@ -93,14 +91,18 @@ class UIManager {
     initToggleForcesButton() {
         const button = document.getElementById('toggle-forces');
         if (!button) return;
-        
-        // Initialize as active (forces enabled)
-        button.classList.add('active');
-        
+
+        // Initialize button state based on current force simulation state
+        const isActive = this.forceSimulation.useForces;
+        button.classList.toggle('active', isActive);
+        button.textContent = isActive ? 'Disable Forces' : 'Enable Forces';
+
+        // Attach event listener
         button.addEventListener('click', () => {
-            // Toggle forces
+            // Use the simulation's toggle method
             const newState = this.forceSimulation.toggleForces();
-            
+
+            // Update button appearance
             button.classList.toggle('active', newState);
             button.textContent = newState ? 'Disable Forces' : 'Enable Forces';
         });
@@ -112,8 +114,10 @@ class UIManager {
     initResetViewButton() {
         const button = document.getElementById('reset-view');
         if (!button) return;
-        
+
+        // Attach event listener
         button.addEventListener('click', () => {
+            // Directly call the controller's reset method
             this.cameraController.resetToDefaultPosition();
         });
     }
@@ -124,10 +128,11 @@ class UIManager {
     initResetPositionsButton() {
         const button = document.getElementById('reset-positions');
         if (!button) return;
-        
+
+        // Attach event listener
         button.addEventListener('click', () => {
+            // Call the node manager's reset method
             this.nodeManager.resetPositions();
-            this.edgeManager.updateEdgePositions();
         });
     }
     

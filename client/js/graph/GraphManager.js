@@ -353,9 +353,13 @@ class GraphManager {
             }
 
             try {
-                // Rotate camera if enabled
+                // Perform auto-rotation if enabled
                 if (isRotating && !this.is2DMode && !this.is3DTransitioning) {
-                    this.rotateCamera(rotationSpeed);
+                    if (this.cameraController) {
+                        this.cameraController.performAutoRotation();
+                    } else {
+                        this.rotateCamera(rotationSpeed);
+                    }
                 }
 
                 // Render the scene

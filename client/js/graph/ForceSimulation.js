@@ -43,14 +43,15 @@ class ForceSimulation {
      */
     toggleForces() {
         this.useForces = !this.useForces;
-        
+
         if (this.useForces && !this.isSimulating) {
             this.start();
         }
-        
+
+        console.log(`Forces ${this.useForces ? 'enabled' : 'disabled'}, Simulation running: ${this.isSimulating}`);
         return this.useForces;
     }
-    
+
     /**
      * Set whether in 2D mode
      * @param {boolean} is2D - Whether in 2D mode
@@ -63,19 +64,25 @@ class ForceSimulation {
      * Single simulation step
      */
     simulateStep() {
-        if (!this.isSimulating || !this.useForces) {
+        if (!this.isSimulating) {
+            return;
+        }
+
+        if (!this.useForces) {
+            // If forces are disabled but simulation is still running, keep checking
+            requestAnimationFrame(() => this.simulateStep());
             return;
         }
 
         // Get current edge data
         const edges = this.edgeManager.getEdgeData();
-        
+
         // Track total movement to detect stability
         let totalMovement = this.nodeManager.updatePositionsWithForces(edges, this.is2DMode);
-        
+
         // Update edge positions to match nodes
         this.edgeManager.updateEdgePositions();
-        
+
         // Adaptive simulation - slow down when stable
         if (!this.stabilityCounter) this.stabilityCounter = 0;
         if (totalMovement < 0.5) {
@@ -88,7 +95,7 @@ class ForceSimulation {
         } else {
             this.stabilityCounter = 0;
         }
-        
+
         // Continue simulation
         requestAnimationFrame(() => this.simulateStep());
     }

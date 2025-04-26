@@ -309,27 +309,48 @@ class NodeManager {
      * Reset nodes to their original calculated positions
      */
     resetPositions() {
-        console.log('Resetting node positions.');
-        for (const id in this.nodePositions) {
-            const originalPos = this.nodePositions[id];
+        console.log('Properly resetting node positions');
+
+        // Get the original calculated positions
+        const nodePositions = this.nodePositions;
+
+        // Loop through all nodes and reset their positions
+        for (const id in this.nodeObjects) {
             const node = this.nodeObjects[id];
+            const position = nodePositions[id];
 
-            if (originalPos && node) {
-                console.log(`Resetting position for node ${id} to`, originalPos);
-                // Set node position
-                node.position.copy(originalPos);
+            if (node && position) {
+                // Set position directly
+                node.position.copy(position);
 
-                // Update label position
-                if (this.labelObjects[id]) {
+                // Also update label position
+                if (this.labelObjects && this.labelObjects[id]) {
                     const label = this.labelObjects[id];
+                    const nodeSize = node.geometry.parameters.radius || node.userData.size;
+
                     label.position.set(
-                        originalPos.x,
-                        originalPos.y + node.userData.size + 5,
-                        originalPos.z
+                        position.x,
+                        position.y + nodeSize + 5,
+                        position.z
                     );
                 }
             }
         }
+
+        // Ensure edge positions are updated
+        if (window.WTG.edgeManager) {
+            window.WTG.edgeManager.updateEdgePositions();
+        }
+
+        // Trigger a scene update
+        if (window.WTG.graphManager && window.WTG.graphManager.renderer) {
+            window.WTG.graphManager.renderer.render(
+                window.WTG.graphManager.scene,
+                window.WTG.graphManager.camera
+            );
+        }
+
+        return true;
     }
     
     /**

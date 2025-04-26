@@ -150,29 +150,30 @@ class CameraController {
     }
     
     /**
-     * Perform auto-rotation step
-     */
-    performAutoRotation() {
-        if (this.autoRotate) {
-            this.rotateCamera(1, 0); // Rotate small amount horizontally
-        }
-    }
-    
-    /**
-     * Toggle auto-rotation
-     * @returns {boolean} - New auto-rotation state
-     */
-    toggleAutoRotation() {
-        this.autoRotate = !this.autoRotate;
-        return this.autoRotate;
-    }
-    
-    /**
      * Set auto-rotation state
      * @param {boolean} enabled - Whether auto-rotation is enabled
      */
     setAutoRotation(enabled) {
         this.autoRotate = enabled;
+        console.log(`Auto-rotation ${enabled ? 'enabled' : 'disabled'}`);
+        return this.autoRotate;
+    }
+
+    /**
+     * Toggle auto-rotation
+     * @returns {boolean} - New auto-rotation state
+     */
+    toggleAutoRotation() {
+        return this.setAutoRotation(!this.autoRotate);
+    }
+
+    /**
+     * Perform auto-rotation step
+     */
+    performAutoRotation() {
+        if (this.autoRotate) {
+            this.rotateCamera(0.5, 0); // Small amount horizontally
+        }
     }
     
     /**
