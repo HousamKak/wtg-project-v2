@@ -80,7 +80,7 @@
         );
         
         // Set up references between managers
-        graphManager.setManagers(nodeManager, edgeManager, selectionManager);
+        graphManager.setManagers(nodeManager, edgeManager, selectionManager, cameraController);
         
         // Initialize the nodes
         nodeManager.initNodes(window.nodes || []);
@@ -210,7 +210,14 @@
         
         toggleRotation: function() {
             if (cameraController) {
-                return cameraController.toggleAutoRotation();
+                const newState = cameraController.toggleAutoRotation();
+                // Update button state if it exists
+                const rotationButton = document.getElementById('toggle-rotation');
+                if (rotationButton) {
+                    rotationButton.classList.toggle('active', newState);
+                    rotationButton.textContent = newState ? 'Disable Rotation' : 'Enable Rotation';
+                }
+                return newState;
             }
             return false;
         },

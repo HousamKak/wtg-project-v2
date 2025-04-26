@@ -94,11 +94,15 @@ class GraphManager {
      * @param {Object} nodeManager - Node manager instance
      * @param {Object} edgeManager - Edge manager instance
      * @param {Object} selectionManager - Selection manager instance
+     * @param {Object} cameraController - Camera controller instance (optional)
      */
-    setManagers(nodeManager, edgeManager, selectionManager) {
+    setManagers(nodeManager, edgeManager, selectionManager, cameraController = null) {
         this.nodeManager = nodeManager;
         this.edgeManager = edgeManager;
         this.selectionManager = selectionManager;
+        if (cameraController) {
+            this.cameraController = cameraController;
+        }
     }
     
     /**
@@ -332,17 +336,15 @@ class GraphManager {
      */
     startAnimation(enableRotation = false) {
         const rotationSpeed = 0.005;
-        let isRotating = enableRotation;
         let frameCounter = 0;
 
         // Track frame errors to prevent crashing
         let consecutiveErrors = 0;
 
-        // Function to toggle rotation
-        this.toggleRotation = () => {
-            isRotating = !isRotating;
-            return isRotating;
-        };
+        // If initial rotation is enabled, update the cameraController
+        if (this.cameraController && enableRotation) {
+            this.cameraController.setAutoRotation(true);
+        }
 
         // Main animation loop with error boundary
         const animate = () => {
@@ -353,13 +355,10 @@ class GraphManager {
             }
 
             try {
-                // Perform auto-rotation if enabled
-                if (isRotating && !this.is2DMode && !this.is3DTransitioning) {
-                    if (this.cameraController) {
-                        this.cameraController.performAutoRotation();
-                    } else {
-                        this.rotateCamera(rotationSpeed);
-                    }
+                // Perform auto-rotation if enabled in the camera controller
+                if (this.cameraController && this.cameraController.autoRotate && 
+                    !this.is2DMode && !this.is3DTransitioning) {
+                    this.cameraController.performAutoRotation();
                 }
 
                 // Render the scene
