@@ -122,7 +122,9 @@ const theoremDetails = {
     }
 };
 
-// Make theoremDetails available as a module
+// Make theoremDetails available as a module or globally
 if (typeof module !== 'undefined') {
     module.exports = theoremDetails;
+} else {
+    window.theoremDetails = theoremDetails;
 }
