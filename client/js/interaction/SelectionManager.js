@@ -12,6 +12,31 @@ class SelectionManager {
         
         // Currently selected node ID
         this.selectedNodeId = null;
+        
+        // Flag for search input focus state
+        window.searchInputFocused = false;
+        
+        // Set up search input focus detection
+        this.setupSearchInputDetection();
+    }
+    
+    /**
+     * Set up detection for search input focus state
+     */
+    setupSearchInputDetection() {
+        const searchInput = document.getElementById('search-input');
+        if (!searchInput) return;
+        
+        // Set focus and blur handlers
+        searchInput.addEventListener('focus', () => {
+            window.searchInputFocused = true;
+            console.log('Search input focused - keyboard shortcuts disabled');
+        });
+        
+        searchInput.addEventListener('blur', () => {
+            window.searchInputFocused = false;
+            console.log('Search input blurred - keyboard shortcuts enabled');
+        });
     }
     
     /**
@@ -130,7 +155,7 @@ class SelectionManager {
     isClickOnUIElement(x, y) {
         const uiElements = [
             'controls', 'search-bar', 'info', 'sidebar', 'legend', 
-            'node-types', 'edge-types'
+            'node-types', 'edge-types', 'top-controls'
         ];
         
         for (const id of uiElements) {
@@ -141,6 +166,16 @@ class SelectionManager {
                     console.log(`Click detected on UI element: ${id}`);
                     return true;
                 }
+            }
+        }
+        
+        // Also check modal elements
+        const modals = document.querySelectorAll('.modal.active');
+        for (const modal of modals) {
+            const rect = modal.getBoundingClientRect();
+            if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                console.log('Click detected on active modal');
+                return true;
             }
         }
         
@@ -294,6 +329,21 @@ class SelectionManager {
      * @param {KeyboardEvent} event - Keyboard event
      */
     handleKeyNavigation(event) {
+        // If search input is focused, don't process most keyboard shortcuts
+        if (window.searchInputFocused) {
+            // Still allow Escape key when search is focused
+            if (event.key === 'Escape') {
+                const searchInput = document.getElementById('search-input');
+                if (searchInput) {
+                    searchInput.blur();
+                }
+                this.clearSelection();
+                event.preventDefault();
+            }
+            return;
+        }
+        
+        // Process normal keyboard shortcuts
         switch (event.key) {
             case 'ArrowUp':
                 this.selectNextNode('up');
@@ -313,6 +363,34 @@ class SelectionManager {
                 break;
             case 'Escape':
                 this.clearSelection();
+                event.preventDefault();
+                break;
+            case 'f':
+            case 'F':
+                // Focus search box
+                const searchInput = document.getElementById('search-input');
+                if (searchInput) {
+                    searchInput.focus();
+                    event.preventDefault();
+                }
+                break;
+            case 'h':
+            case 'H':
+                // Show help/info modal
+                const infoModal = document.getElementById('info-modal');
+                if (infoModal) {
+                    infoModal.classList.toggle('active');
+                    event.preventDefault();
+                }
+                break;
+            case 't':
+            case 'T':
+                // Toggle theme
+                if (window.UIManager) {
+                    window.UIManager.toggleTheme();
+                } else if (window.WTG && window.WTG.uiManager) {
+                    window.WTG.uiManager.toggleTheme();
+                }
                 event.preventDefault();
                 break;
         }

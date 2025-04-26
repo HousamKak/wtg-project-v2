@@ -11,11 +11,11 @@ class NodeManager {
         this.nodePositions = {}; // Maps node IDs to positions
         this.labelObjects = {}; // Maps node IDs to label objects
         
+        // Original positions for reset
+        this.originalPositions = {}; // Maps node IDs to original positions
+        
         // Minimum distance between nodes for force simulation
         this.minNodeDistance = 100;
-        
-        // Material caches
-        this.materialCache = {};
     }
     
     /**
@@ -30,6 +30,11 @@ class NodeManager {
         
         // Create node objects
         nodesData.forEach(node => this.createNode(node));
+        
+        // Store original positions for reset
+        for (const id in this.nodePositions) {
+            this.originalPositions[id] = this.nodePositions[id].clone();
+        }
     }
     
     /**
@@ -178,7 +183,7 @@ class NodeManager {
         }
 
         try {
-            // FIXED: Replace the entire material instead of updating properties
+            // Replace the entire material instead of updating properties
             const oldMaterial = nodeObj.material;
             const newMaterial = window.themeManager.getNodeMaterial(
                 nodeObj.userData.nodeType, 
@@ -309,54 +314,55 @@ class NodeManager {
      * Reset nodes to their original calculated positions
      */
     resetPositions() {
-        console.log('Properly resetting node positions');
+        console.log('Resetting node positions to original');
 
-        // Get the original calculated positions
-        const nodePositions = this.nodePositions;
-
-        // Loop through all nodes and reset their positions
+        // Loop through all nodes and reset to original positions
         for (const id in this.nodeObjects) {
             const node = this.nodeObjects[id];
-            const position = nodePositions[id];
+            const originalPosition = this.originalPositions[id];
 
-            if (node && position) {
+            if (node && originalPosition) {
                 // Set position directly
-                node.position.copy(position);
-
-                // Also update label position
-                if (this.labelObjects && this.labelObjects[id]) {
+                node.position.copy(originalPosition);
+                
+                // Also update nodePositions map
+                this.nodePositions[id] = originalPosition.clone();
+                
+                // Update label position
+                if (this.labelObjects[id]) {
                     const label = this.labelObjects[id];
-                    const nodeSize = node.geometry.parameters.radius || node.userData.size;
-
+                    const nodeSize = node.userData.size || node.geometry.parameters.radius;
+                    
                     label.position.set(
-                        position.x,
-                        position.y + nodeSize + 5,
-                        position.z
+                        originalPosition.x,
+                        originalPosition.y + nodeSize + 5,
+                        originalPosition.z
                     );
                 }
             }
         }
-
-        // Ensure edge positions are updated
-        if (window.WTG.edgeManager) {
+        
+        // Force the edge manager to update if available through WTG
+        if (window.WTG && window.WTG.edgeManager) {
             window.WTG.edgeManager.updateEdgePositions();
         }
-
+        
         // Trigger a scene update
-        if (window.WTG.graphManager && window.WTG.graphManager.renderer) {
+        if (window.WTG && window.WTG.graphManager && window.WTG.graphManager.renderer) {
             window.WTG.graphManager.renderer.render(
                 window.WTG.graphManager.scene,
                 window.WTG.graphManager.camera
             );
         }
-
+        
         return true;
     }
     
     /**
-     * Update node positions based on forces (for force-directed layout)
+     * Update positions based on forces (for force-directed layout)
      * @param {Array} edges - Array of edge data objects
      * @param {boolean} is2DMode - Whether in 2D mode
+     * @returns {number} Total movement
      */
     updatePositionsWithForces(edges, is2DMode) {
         // Apply forces to nodes
@@ -486,45 +492,6 @@ class NodeManager {
         return nearestNode;
     }
 }
-
-// Add a global recovery function for emergency use
-function recoverGraph() {
-    console.log('Attempting to recover graph...');
-
-    try {
-        // Check if graph exists in the scene
-        const nodeCount = window.WTG.nodeManager.getAllNodes();
-        const nodeIds = Object.keys(nodeCount);
-
-        if (nodeIds.length === 0) {
-            console.error('No nodes found! Attempting full reinitialize...');
-
-            // Clear scene
-            while (window.WTG.graphManager.scene.children.length > 0) {
-                const obj = window.WTG.graphManager.scene.children[0];
-                window.WTG.graphManager.scene.remove(obj);
-            }
-
-            // Reinitialize nodes and edges
-            window.WTG.nodeManager.initNodes(window.nodes || []);
-            window.WTG.edgeManager.initEdges(window.edges || []);
-
-            // Restart force simulation
-            if (window.WTG.forceSimulation) {
-                window.WTG.forceSimulation.start();
-            }
-
-            console.log('Graph recovery attempted');
-        } else {
-            console.log(`Found ${nodeIds.length} nodes, graph appears intact`);
-        }
-    } catch (error) {
-        console.error('Error during graph recovery:', error);
-    }
-}
-
-// Attach the recovery function to the global window object
-window.recoverWTG = recoverGraph;
 
 // Make available in module and global contexts
 if (typeof module !== 'undefined') {
