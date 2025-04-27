@@ -1,16 +1,51 @@
-/* Theme variables for buttons */
+/* Modern Theme Variables */
 :root {
-  --btn-gradient-start: #4FACFE;
-  --btn-gradient-end:   #00F2FE;
-  --btn-text:           #FFFFFF;
-  --btn-shadow:         rgba(0, 0, 0, 0.1);
-  --btn-shadow-strong:  rgba(0, 0, 0, 0.15);
-  --btn-radius:         8px;
-  --btn-padding:        0.75em 1.5em;
-  --btn-font-size:      1rem;
-  --transition-speed:   0.3s;
-}
-
+    /* Primary colors */
+    --primary-color: #3a7bd5;
+    --primary-light: #5e9cf9;
+    --primary-dark: #2c5ea9;
+    
+    /* Secondary colors */
+    --secondary-color: #00d2ff;
+    --secondary-light: #73e5ff;
+    --secondary-dark: #00a6cc;
+    
+    /* UI colors */
+    --background-dark: #121218;
+    --background-card: rgba(25, 25, 35, 0.95);
+    --background-overlay: rgba(18, 18, 24, 0.8);
+    --text-primary: #ffffff;
+    --text-secondary: #e0e0e0;
+    --text-muted: #a0a0a0;
+    
+    /* Accent colors for node types */
+    --color-axiom: #f5365c;
+    --color-definition: #5e72e4;
+    --color-lemma: #2dce89;
+    --color-theorem: #9164cc;
+    --color-corollary: #fb6340;
+    
+    /* Edge colors */
+    --edge-depends: #5e9cf9;
+    --edge-proves: #2dce89;
+    --edge-generalizes: #fb6340;
+    
+    /* UI elements */
+    --border-radius: 8px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --box-shadow-hover: 0 8px 16px rgba(0, 0, 0, 0.25);
+    --transition-speed: 0.25s;
+    
+    /* Button styles */
+    --btn-gradient-start: #3a7bd5;
+    --btn-gradient-end: #00d2ff;
+    --btn-text: #FFFFFF;
+    --btn-shadow: rgba(0, 0, 0, 0.1);
+    --btn-shadow-strong: rgba(0, 0, 0, 0.15);
+    --btn-radius: 8px;
+    --btn-padding: 0.75em 1.5em;
+    --btn-font-size: 0.875rem;
+  }
 /* Main layout */
 body {
 margin: 0;
