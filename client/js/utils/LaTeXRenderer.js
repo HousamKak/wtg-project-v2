@@ -5,6 +5,7 @@
 class LaTeXRenderer {
     constructor() {
         this.initialized = false;
+        this.initializationPromise = null;
         
         // MathJax configuration
         this.config = {
@@ -19,43 +20,80 @@ class LaTeXRenderer {
      * Initialize MathJax
      * @returns {Promise} - Promise resolving when MathJax is loaded
      */
-    async initialize() {
+    initialize() {
         if (this.initialized) return Promise.resolve();
         
-        return new Promise((resolve, reject) => {
+        // If already initializing, return the existing promise
+        if (this.initializationPromise) return this.initializationPromise;
+        
+        this.initializationPromise = new Promise((resolve, reject) => {
             // Check if MathJax is already loaded
             if (window.MathJax) {
+                console.log('MathJax already loaded, configuring...');
                 this.configureMathJax();
                 this.initialized = true;
                 resolve();
                 return;
             }
             
+            console.log('Loading MathJax from CDN...');
+            
+            // Configure MathJax before loading the script
+            window.MathJax = {
+                tex: {
+                    inlineMath: [["$", "$"]],
+                    displayMath: [["$$", "$$"]],
+                    processEscapes: true,
+                    processEnvironments: true
+                },
+                options: {
+                    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+                    ignoreHtmlClass: 'tex2jax_ignore',
+                    processHtmlClass: 'tex2jax_process'
+                },
+                startup: {
+                    ready: () => {
+                        console.log('MathJax ready');
+                        window.MathJax.startup.defaultReady();
+                        this.initialized = true;
+                        resolve();
+                    }
+                }
+            };
+            
             // Load MathJax script
             const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js';
+            script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
             script.async = true;
             
             script.onload = () => {
-                this.configureMathJax();
-                this.initialized = true;
-                resolve();
+                console.log('MathJax script loaded');
+                // Resolution is handled by MathJax.startup.ready
             };
             
-            script.onerror = () => {
-                console.error('Failed to load MathJax');
+            script.onerror = (error) => {
+                console.error('Failed to load MathJax:', error);
                 reject(new Error('Failed to load MathJax'));
+                this.initializationPromise = null;
             };
             
             document.head.appendChild(script);
         });
+        
+        return this.initializationPromise;
     }
     
     /**
      * Configure MathJax
+     * This is now done before loading MathJax
      */
     configureMathJax() {
+        if (!window.MathJax) {
+            window.MathJax = {};
+        }
+        
         window.MathJax = {
+            ...window.MathJax,
             tex: {
                 inlineMath: [["$", "$"]],
                 displayMath: [["$$", "$$"]],
@@ -73,18 +111,24 @@ class LaTeXRenderer {
     /**
      * Process LaTeX in an element
      * @param {HTMLElement} element - Element containing LaTeX
+     * @returns {Promise} - Promise resolving when processing is complete
      */
     async processElement(element) {
         if (!element) return;
         
-        await this.initialize();
-        
-        if (window.MathJax && window.MathJax.typesetPromise) {
-            try {
+        try {
+            // Make sure MathJax is initialized
+            await this.initialize();
+            
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                console.log('Processing LaTeX in element:', element);
                 await window.MathJax.typesetPromise([element]);
-            } catch (error) {
-                console.error('Error typesetting LaTeX:', error);
+                console.log('LaTeX processing complete');
+            } else {
+                console.error('MathJax.typesetPromise not available');
             }
+        } catch (error) {
+            console.error('Error typesetting LaTeX:', error);
         }
     }
     
@@ -115,10 +159,31 @@ class LaTeXRenderer {
         container.className = 'latex-container';
         container.innerHTML = this.processLatexString(latexString);
         
-        // Queue typesetting
-        setTimeout(() => this.processElement(container), 0);
+        // Queue typesetting with a slight delay to ensure DOM is updated
+        setTimeout(() => {
+            this.processElement(container).catch(error => {
+                console.error('Failed to process LaTeX element:', error);
+            });
+        }, 50);
         
         return container;
+    }
+    
+    /**
+     * Process all LaTeX elements in the document
+     * @returns {Promise} - Promise resolving when all processing is complete
+     */
+    async processAllElements() {
+        try {
+            await this.initialize();
+            
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                await window.MathJax.typesetPromise();
+                console.log('All LaTeX elements processed');
+            }
+        } catch (error) {
+            console.error('Error processing all LaTeX elements:', error);
+        }
     }
 }
 

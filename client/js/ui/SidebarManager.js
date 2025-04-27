@@ -26,12 +26,15 @@ class SidebarManager {
     /**
      * Initialize LaTeX renderer
      */
-    initLaTeXRenderer() {
+    async initLaTeXRenderer() {
         if (window.latexRenderer) {
-            // Try to initialize the LaTeX renderer
-            window.latexRenderer.initialize().catch(error => {
+            try {
+                // Initialize the LaTeX renderer
+                await window.latexRenderer.initialize();
+                console.log('LaTeX renderer initialized successfully');
+            } catch (error) {
                 console.error('Failed to initialize LaTeX renderer:', error);
-            });
+            }
         } else {
             console.warn('LaTeX renderer not available');
         }
@@ -41,7 +44,7 @@ class SidebarManager {
      * Show details for a specific node
      * @param {string} nodeId - Node ID
      */
-    showNodeDetails(nodeId) {
+    async showNodeDetails(nodeId) {
         if (!this.sidebar || !this.titleElement || !this.contentElement) return;
         
         // Find node data
@@ -70,7 +73,10 @@ class SidebarManager {
         this.sidebar.classList.remove('hidden');
         
         // Process LaTeX in the sidebar content
-        this.renderLaTeX();
+        // Use a small delay to ensure the DOM is fully updated
+        setTimeout(() => {
+            this.renderLaTeX();
+        }, 100);
     }
     
     /**
@@ -94,7 +100,7 @@ class SidebarManager {
             ${theorem.statement_latex ? `
                 <div class="latex-statement">
                     <p>Mathematical Form:</p>
-                    <div class="latex-formula">$$${theorem.statement_latex}$$</div>
+                    <div class="latex-formula" id="latex-formula-${nodeId}">$${theorem.statement_latex}$$</div>
                 </div>
             ` : ''}
             <h3>Explanation</h3>
@@ -126,15 +132,24 @@ class SidebarManager {
     /**
      * Render LaTeX formulas in the sidebar
      */
-    renderLaTeX() {
-        if (window.latexRenderer) {
-            // Find all LaTeX containers in the sidebar
-            const latexContainers = this.contentElement.querySelectorAll('.latex-formula');
+    async renderLaTeX() {
+        if (!window.latexRenderer) {
+            console.warn('LaTeX renderer not available for rendering');
+            return;
+        }
+        
+        try {
+            console.log('Starting LaTeX rendering in sidebar...');
             
-            // Process each container
-            latexContainers.forEach(container => {
-                window.latexRenderer.processElement(container);
-            });
+            // Ensure LaTeX renderer is initialized
+            await window.latexRenderer.initialize();
+            
+            // Process the entire sidebar content
+            await window.latexRenderer.processElement(this.contentElement);
+            
+            console.log('LaTeX rendering in sidebar completed');
+        } catch (error) {
+            console.error('Error rendering LaTeX in sidebar:', error);
         }
     }
     
